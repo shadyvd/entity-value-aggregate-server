@@ -1,0 +1,10 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Explain Domain",
+      "type": "shell",
+      "command": "echo 'Use Copilot Chat to explain selected domain files'"
+    }
+  ]
+}

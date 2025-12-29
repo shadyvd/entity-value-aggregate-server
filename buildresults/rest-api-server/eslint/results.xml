@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<testsuites>
+	<testsuite package="org.eslint" time="0" tests="1" errors="1" name="/home/vish/Work/twyr/entity-value-aggregate-server/servers/rest-api-server/knex_migrations/seeds/001-artifact-seed.cjs">
+		<testcase time="0" name="org.eslint.prettier/prettier" classname="/home/vish/Work/twyr/entity-value-aggregate-server/servers/rest-api-server/knex_migrations/seeds/001-artifact-seed">
+			<failure message="Replace `⏎↹↹↹↹` with `·`">
+				<![CDATA[]]>
+			</failure>
+		</testcase>
+	</testsuite>
+	<testsuite package="org.eslint" time="0" tests="2" errors="2" name="/home/vish/Work/twyr/entity-value-aggregate-server/servers/rest-api-server/source/domains/admin/models/relational/tenant-role.cjs">
+		<testcase time="0" name="org.eslint.jsdoc/require-jsdoc" classname="/home/vish/Work/twyr/entity-value-aggregate-server/servers/rest-api-server/source/domains/admin/models/relational/tenant-role">
+			<failure message="Missing JSDoc comment.">
+				<![CDATA[]]>
+			</failure>
+		</testcase>
+		<testcase time="0" name="org.eslint.jsdoc/require-jsdoc" classname="/home/vish/Work/twyr/entity-value-aggregate-server/servers/rest-api-server/source/domains/admin/models/relational/tenant-role">
+			<failure message="Missing JSDoc comment.">
+				<![CDATA[]]>
+			</failure>
+		</testcase>
+	</testsuite>
+	<testsuite package="org.eslint" time="0" tests="2" errors="2" name="/home/vish/Work/twyr/entity-value-aggregate-server/servers/rest-api-server/source/domains/admin/models/relational/tenant-status-master.cjs">
+		<testcase time="0" name="org.eslint.jsdoc/require-jsdoc" classname="/home/vish/Work/twyr/entity-value-aggregate-server/servers/rest-api-server/source/domains/admin/models/relational/tenant-status-master">
+			<failure message="Missing JSDoc comment.">
+				<![CDATA[]]>
+			</failure>
+		</testcase>
+		<testcase time="0" name="org.eslint.jsdoc/require-jsdoc" classname="/home/vish/Work/twyr/entity-value-aggregate-server/servers/rest-api-server/source/domains/admin/models/relational/tenant-status-master">
+			<failure message="Missing JSDoc comment.">
+				<![CDATA[]]>
+			</failure>
+		</testcase>
+	</testsuite>
+	<testsuite package="org.eslint" time="0" tests="2" errors="2" name="/home/vish/Work/twyr/entity-value-aggregate-server/servers/rest-api-server/source/domains/admin/models/relational/tenant-user.cjs">
+		<testcase time="0" name="org.eslint.jsdoc/require-jsdoc" classname="/home/vish/Work/twyr/entity-value-aggregate-server/servers/rest-api-server/source/domains/admin/models/relational/tenant-user">
+			<failure message="Missing JSDoc comment.">
+				<![CDATA[]]>
+			</failure>
+		</testcase>
+		<testcase time="0" name="org.eslint.jsdoc/require-jsdoc" classname="/home/vish/Work/twyr/entity-value-aggregate-server/servers/rest-api-server/source/domains/admin/models/relational/tenant-user">
+			<failure message="Missing JSDoc comment.">
+				<![CDATA[]]>
+			</failure>
+		</testcase>
+	</testsuite>
+	<testsuite package="org.eslint" time="0" tests="2" errors="2" name="/home/vish/Work/twyr/entity-value-aggregate-server/servers/rest-api-server/source/domains/admin/models/relational/tenant.cjs">
+		<testcase time="0" name="org.eslint.jsdoc/require-jsdoc" classname="/home/vish/Work/twyr/entity-value-aggregate-server/servers/rest-api-server/source/domains/admin/models/relational/tenant">
+			<failure message="Missing JSDoc comment.">
+				<![CDATA[]]>
+			</failure>
+		</testcase>
+		<testcase time="0" name="org.eslint.jsdoc/require-jsdoc" classname="/home/vish/Work/twyr/entity-value-aggregate-server/servers/rest-api-server/source/domains/admin/models/relational/tenant">
+			<failure message="Missing JSDoc comment.">
+				<![CDATA[]]>
+			</failure>
+		</testcase>
+	</testsuite>
+	<testsuite package="org.eslint" time="0" tests="2" errors="2" name="/home/vish/Work/twyr/entity-value-aggregate-server/servers/rest-api-server/source/domains/portal/models/relational/contact-type-master.cjs">
+		<testcase time="0" name="org.eslint.jsdoc/require-jsdoc" classname="/home/vish/Work/twyr/entity-value-aggregate-server/servers/rest-api-server/source/domains/portal/models/relational/contact-type-master">
+			<failure message="Missing JSDoc comment.">
+				<![CDATA[]]>
+			</failure>
+		</testcase>
+		<testcase time="0" name="org.eslint.jsdoc/require-jsdoc" classname="/home/vish/Work/twyr/entity-value-aggregate-server/servers/rest-api-server/source/domains/portal/models/relational/contact-type-master">
+			<failure message="Missing JSDoc comment.">
+				<![CDATA[]]>
+			</failure>
+		</testcase>
+	</testsuite>
+	<testsuite package="org.eslint" time="0" tests="2" errors="2" name="/home/vish/Work/twyr/entity-value-aggregate-server/servers/rest-api-server/source/domains/portal/models/relational/tenant-status-master.cjs">
+		<testcase time="0" name="org.eslint.jsdoc/require-jsdoc" classname="/home/vish/Work/twyr/entity-value-aggregate-server/servers/rest-api-server/source/domains/portal/models/relational/tenant-status-master">
+			<failure message="Missing JSDoc comment.">
+				<![CDATA[]]>
+			</failure>
+		</testcase>
+		<testcase time="0" name="org.eslint.jsdoc/require-jsdoc" classname="/home/vish/Work/twyr/entity-value-aggregate-server/servers/rest-api-server/source/domains/portal/models/relational/tenant-status-master">
+			<failure message="Missing JSDoc comment.">
+				<![CDATA[]]>
+			</failure>
+		</testcase>
+	</testsuite>
+	<testsuite package="org.eslint" time="0" tests="2" errors="2" name="/home/vish/Work/twyr/entity-value-aggregate-server/servers/rest-api-server/source/domains/portal/models/relational/tenant-user.cjs">
+		<testcase time="0" name="org.eslint.jsdoc/require-jsdoc" classname="/home/vish/Work/twyr/entity-value-aggregate-server/servers/rest-api-server/source/domains/portal/models/relational/tenant-user">
+			<failure message="Missing JSDoc comment.">
+				<![CDATA[]]>
+			</failure>
+		</testcase>
+		<testcase time="0" name="org.eslint.jsdoc/require-jsdoc" classname="/home/vish/Work/twyr/entity-value-aggregate-server/servers/rest-api-server/source/domains/portal/models/relational/tenant-user">
+			<failure message="Missing JSDoc comment.">
+				<![CDATA[]]>
+			</failure>
+		</testcase>
+	</testsuite>
+	<testsuite package="org.eslint" time="0" tests="2" errors="2" name="/home/vish/Work/twyr/entity-value-aggregate-server/servers/rest-api-server/source/domains/portal/models/relational/tenant.cjs">
+		<testcase time="0" name="org.eslint.jsdoc/require-jsdoc" classname="/home/vish/Work/twyr/entity-value-aggregate-server/servers/rest-api-server/source/domains/portal/models/relational/tenant">
+			<failure message="Missing JSDoc comment.">
+				<![CDATA[]]>
+			</failure>
+		</testcase>
+		<testcase time="0" name="org.eslint.jsdoc/require-jsdoc" classname="/home/vish/Work/twyr/entity-value-aggregate-server/servers/rest-api-server/source/domains/portal/models/relational/tenant">
+			<failure message="Missing JSDoc comment.">
+				<![CDATA[]]>
+			</failure>
+		</testcase>
+	</testsuite>
+	<testsuite package="org.eslint" time="0" tests="2" errors="2" name="/home/vish/Work/twyr/entity-value-aggregate-server/servers/rest-api-server/source/domains/portal/models/relational/user-contact.cjs">
+		<testcase time="0" name="org.eslint.jsdoc/require-jsdoc" classname="/home/vish/Work/twyr/entity-value-aggregate-server/servers/rest-api-server/source/domains/portal/models/relational/user-contact">
+			<failure message="Missing JSDoc comment.">
+				<![CDATA[]]>
+			</failure>
+		</testcase>
+		<testcase time="0" name="org.eslint.jsdoc/require-jsdoc" classname="/home/vish/Work/twyr/entity-value-aggregate-server/servers/rest-api-server/source/domains/portal/models/relational/user-contact">
+			<failure message="Missing JSDoc comment.">
+				<![CDATA[]]>
+			</failure>
+		</testcase>
+	</testsuite>
+	<testsuite package="org.eslint" time="0" tests="2" errors="2" name="/home/vish/Work/twyr/entity-value-aggregate-server/servers/rest-api-server/source/domains/portal/models/relational/user.cjs">
+		<testcase time="0" name="org.eslint.jsdoc/require-jsdoc" classname="/home/vish/Work/twyr/entity-value-aggregate-server/servers/rest-api-server/source/domains/portal/models/relational/user">
+			<failure message="Missing JSDoc comment.">
+				<![CDATA[]]>
+			</failure>
+		</testcase>
+		<testcase time="0" name="org.eslint.jsdoc/require-jsdoc" classname="/home/vish/Work/twyr/entity-value-aggregate-server/servers/rest-api-server/source/domains/portal/models/relational/user">
+			<failure message="Missing JSDoc comment.">
+				<![CDATA[]]>
+			</failure>
+		</testcase>
+	</testsuite>
+</testsuites>

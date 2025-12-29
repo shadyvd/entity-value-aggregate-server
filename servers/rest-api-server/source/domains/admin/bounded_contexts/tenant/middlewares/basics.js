@@ -1,0 +1,476 @@
+/**
+ * Imports for this file
+ * @ignore
+ */
+import { EVASBaseFactory } from '@twyr/framework-classes';
+import { createErrorForPropagation } from '@twyr/error-serializer';
+import { BaseMiddleware } from 'baseclass:middleware';
+
+/**
+ * @class Basics
+ * @extends BaseMiddleware
+ *
+ * @param {string} [location] - __dirname for this file in CJS, basically
+ * @param {object} [domainInterface] - Domain functionality exposed to sub-artifacts
+ *
+ * @classdesc The Middleware to handle login / logout / register
+ */
+export class Basics extends BaseMiddleware {
+	// #region Constructor
+	// eslint-disable-next-line jsdoc/require-jsdoc
+	constructor(location, domainInterface) {
+		super(location, domainInterface);
+	}
+	// #endregion
+
+	// #region Protected Methods, to be overridden by derived classes
+	/**
+	 * @memberof Basics
+	 * @async
+	 * @instance
+	 * @override
+	 * @function
+	 * @name _registerApi
+	 *
+	 * @returns {null} - Nothing
+	 *
+	 * @description
+	 * Adds the API to the apiRegistry in the domainInterface
+	 *
+	 */
+	async _registerApi() {
+		const errors = [];
+
+		try {
+			let registerResolutions = [];
+
+			const baseApis = await super._registerApi?.();
+			for (const baseApi of baseApis ?? []) {
+				registerResolutions?.push?.(
+					this?.domainInterface?.apiRegistry?.register?.(
+						baseApi?.pattern,
+						baseApi?.handler
+					)
+				);
+			}
+
+			registerResolutions?.push?.(
+				this?.domainInterface?.apiRegistry?.register?.(
+					'BASICS::CREATE',
+					this.#createTenant?.bind?.(this)
+				)
+			);
+			registerResolutions?.push?.(
+				this?.domainInterface?.apiRegistry?.register?.(
+					'BASICS::GETALL',
+					this.#getAllTenants?.bind?.(this)
+				)
+			);
+			registerResolutions?.push?.(
+				this?.domainInterface?.apiRegistry?.register?.(
+					'BASICS::GET',
+					this.#getTenant?.bind?.(this)
+				)
+			);
+			registerResolutions?.push?.(
+				this?.domainInterface?.apiRegistry?.register?.(
+					'BASICS::SET',
+					this.#setTenant?.bind?.(this)
+				)
+			);
+			registerResolutions?.push?.(
+				this?.domainInterface?.apiRegistry?.register?.(
+					'BASICS::DELETE',
+					this.#deleteTenant?.bind?.(this)
+				)
+			);
+
+			registerResolutions =
+				await Promise?.allSettled?.(registerResolutions);
+			for (const registerResolution of registerResolutions) {
+				if (registerResolution?.status === 'fulfilled') continue;
+				errors?.push?.(registerResolution?.reason);
+			}
+		} catch (error) {
+			errors?.push?.(error);
+		}
+
+		if (!errors?.length) return;
+
+		const propagatedError = createErrorForPropagation?.(
+			`${this?.name}::_registerApi error`,
+			errors
+		);
+
+		if (propagatedError) throw propagatedError;
+	}
+
+	/**
+	 * @memberof Basics
+	 * @async
+	 * @instance
+	 * @override
+	 * @function
+	 * @name _unregisterApi
+	 *
+	 * @returns {null} - Nothing
+	 *
+	 * @description
+	 * Removes the API from the apiRegistry in the domainInterface
+	 *
+	 */
+	async _unregisterApi() {
+		const errors = [];
+
+		try {
+			let unregisterResolutions = [];
+
+			unregisterResolutions?.push?.(
+				this?.domainInterface?.apiRegistry?.unregister?.(
+					'BASICS::DELETE',
+					this.#deleteTenant?.bind?.(this)
+				)
+			);
+			unregisterResolutions?.push?.(
+				this?.domainInterface?.apiRegistry?.unregister?.(
+					'BASICS::SET',
+					this.#setTenant?.bind?.(this)
+				)
+			);
+			unregisterResolutions?.push?.(
+				this?.domainInterface?.apiRegistry?.unregister?.(
+					'BASICS::GET',
+					this.#getTenant?.bind?.(this)
+				)
+			);
+			unregisterResolutions?.push?.(
+				this?.domainInterface?.apiRegistry?.unregister?.(
+					'BASICS::GETALL',
+					this.#getAllTenants?.bind?.(this)
+				)
+			);
+			unregisterResolutions?.push?.(
+				this?.domainInterface?.apiRegistry?.unregister?.(
+					'BASICS::CREATE',
+					this.#createTenant?.bind?.(this)
+				)
+			);
+
+			unregisterResolutions = await Promise?.allSettled?.(
+				unregisterResolutions
+			);
+			for (const unregisterResolution of unregisterResolutions) {
+				if (unregisterResolution?.status === 'fulfilled') continue;
+				errors?.push?.(unregisterResolution?.reason);
+			}
+
+			await super._unregisterApi?.();
+		} catch (error) {
+			errors?.push?.(error);
+		}
+
+		if (!errors?.length) return;
+
+		const propagatedError = createErrorForPropagation?.(
+			`${this?.name}::_unregisterApi error`,
+			errors
+		);
+
+		if (propagatedError) throw propagatedError;
+	}
+	// #endregion
+
+	// #region Handlers
+	async #createTenant({ data }) {
+		// Step 0: Get the models
+		const TenantModel = await this?._getModelsFromDomain?.([
+			{
+				type: 'relational',
+				name: 'tenant'
+			},
+			{
+				type: 'relational',
+				name: 'tenant-user'
+			},
+			{
+				type: 'relational',
+				name: 'tenant-role'
+			}
+		]);
+
+		// Step 1: De-serialize from JSON API Format
+		const tenant =
+			await this?.domainInterface?.serializer?.deserializeAsync?.(
+				data?.data?.type,
+				data
+			);
+
+		// Step 2: Insert into the database
+		let createdTenant = await this?._executeWithBackOff?.(() => {
+			return TenantModel?.query?.()?.insertAndFetch?.(tenant);
+		});
+
+		// Step 3: Add the current user to the tenant
+		// TODO...
+
+		// Finally, serialize to JSON API Format and return
+		createdTenant =
+			await this?.domainInterface?.serializer?.serializeAsync?.(
+				'tenant',
+				createdTenant
+			);
+
+		return {
+			status: 200,
+			body: createdTenant
+		};
+	}
+
+	async #getAllTenants({ tenant, user }) {
+		let TenantModel = await this?._getModelsFromDomain?.([
+			{
+				type: 'relational',
+				name: 'tenant'
+			}
+		]);
+
+		let tenantData;
+
+		if (tenant?.['sub_domain'] === 'admin') {
+			tenantData = await this?._executeWithBackOff?.(() => {
+				return TenantModel?.query?.()?.withGraphFetched?.(
+					'tenantStatus'
+				);
+			});
+		}
+
+		if (tenant?.['sub_domain'] === 'www') {
+			tenantData = await this?._executeWithBackOff?.(() => {
+				return TenantModel?.query?.()
+					?.where?.('owner_id', user?.['id'])
+					?.withGraphFetched?.('tenantStatus');
+			});
+		}
+
+		// Serialize to JSON API Format
+		tenantData = await this?.domainInterface?.serializer?.serializeAsync?.(
+			'tenant',
+			tenantData
+		);
+
+		return {
+			status: 200,
+			body: tenantData
+		};
+	}
+
+	async #getTenant({ tenant, user, tenantId }) {
+		let TenantModel = await this?._getModelsFromDomain?.([
+			{
+				type: 'relational',
+				name: 'tenant'
+			}
+		]);
+
+		let tenantData;
+
+		if (tenant?.['sub_domain'] === 'admin') {
+			tenantData = await this?._executeWithBackOff?.(() => {
+				return TenantModel?.query?.()
+					?.findById?.(tenantId)
+					?.withGraphFetched?.('tenantStatus');
+			});
+		}
+
+		if (tenant?.['sub_domain'] === 'www') {
+			tenantData = await this?._executeWithBackOff?.(() => {
+				return TenantModel?.query?.()
+					?.findById?.(tenantId)
+					?.where('owner_id', user?.['id'])
+					?.withGraphFetched?.('tenantStatus');
+			});
+		}
+
+		// Serialize to JSON API Format
+		tenantData = await this?.domainInterface?.serializer?.serializeAsync?.(
+			'tenant',
+			tenantData
+		);
+
+		return {
+			status: 200,
+			body: tenantData
+		};
+	}
+
+	async #setTenant({ tenant, user, data }) {
+		let TenantModel = await this?._getModelsFromDomain?.([
+			{
+				type: 'relational',
+				name: 'tenant'
+			}
+		]);
+
+		// Step 1: De-serialize from JSON API Format, and remove non-update-able
+		// fields
+		const tenantData =
+			await this?.domainInterface?.serializer?.deserializeAsync?.(
+				data?.data?.type,
+				data
+			);
+
+		const tenantId = tenantData?.id;
+
+		delete tenantData?.id;
+		delete tenantData?.created_at;
+		delete tenantData?.updated_at;
+
+		// Step 2: Update the database
+		let updatedTenant;
+		if (tenant?.['sub_domain'] === 'admin') {
+			updatedTenant = await this?._executeWithBackOff?.(() => {
+				return TenantModel?.query?.()?.patchAndFetchById?.(
+					tenantId,
+					tenantData
+				);
+			});
+		}
+
+		if (tenant?.['sub_domain'] === 'www') {
+			updatedTenant = await this?._executeWithBackOff?.(() => {
+				return TenantModel?.query?.()
+					?.where?.('owner_id', user?.['id'])
+					?.patchAndFetchById?.(tenantId, tenantData);
+			});
+		}
+
+		// Finally... return
+		updatedTenant =
+			await this?.domainInterface?.serializer?.serializeAsync?.(
+				'tenant',
+				updatedTenant
+			);
+
+		return {
+			status: 200,
+			body: updatedTenant
+		};
+	}
+
+	async #deleteTenant({ tenant, user, tenantId }) {
+		let TenantModel = await this?._getModelsFromDomain?.([
+			{
+				type: 'relational',
+				name: 'tenant'
+			}
+		]);
+
+		// TODO: PUT IN A CHECK TO ENSURE THAT 'www' and 'admin'
+		// tenants cannot be deleted
+
+		if (tenant?.['sub_domain'] === 'admin') {
+			await this?._executeWithBackOff?.(() => {
+				return TenantModel?.query?.()?.deleteById?.(tenant?.id);
+			});
+		}
+
+		if (tenant?.['sub_domain'] === 'www') {
+			await this?._executeWithBackOff?.(() => {
+				return TenantModel?.query?.()
+					?.where?.('owner_id', user?.['id'])
+					?.deleteById?.(tenantId);
+			});
+		}
+
+		return {
+			status: 204
+		};
+	}
+	// #endregion
+}
+
+/**
+ * @class MiddlewareFactory
+ * @extends EVASBaseFactory
+ *
+ * @classdesc The Basics Module Basics Middleware Class Factory.
+ */
+export default class MiddlewareFactory extends EVASBaseFactory {
+	// #region Constructor
+	// eslint-disable-next-line jsdoc/require-jsdoc
+	constructor() {
+		super();
+	}
+	// #endregion
+
+	// #region Lifecycle API
+	/**
+	 * @memberof MiddlewareFactory
+	 * @async
+	 * @static
+	 * @override
+	 * @function
+	 * @name createInstance
+	 *
+	 * @param {object} [domainInterface] - Domain functionality exposed to sub-artifacts
+	 *
+	 * @returns {Basics} - The Basics middleware instance.
+	 *
+	 */
+	static async createInstances(domainInterface) {
+		if (!MiddlewareFactory.#tenantInstance) {
+			const tenantInstance = new Basics(
+				MiddlewareFactory['$disk_unc'],
+				domainInterface
+			);
+
+			await tenantInstance?.load?.();
+			MiddlewareFactory.#tenantInstance = tenantInstance;
+		}
+
+		return MiddlewareFactory.#tenantInstance;
+	}
+
+	/**
+	 * @memberof MiddlewareFactory
+	 * @async
+	 * @static
+	 * @override
+	 * @function
+	 * @name destroyInstances
+	 *
+	 * @returns {undefined} - Nothing.
+	 *
+	 * @description Clears the Basics instance
+	 */
+	static async destroyInstances() {
+		await MiddlewareFactory.#tenantInstance?.unload?.();
+		MiddlewareFactory.#tenantInstance = undefined;
+
+		return;
+	}
+	// #endregion
+
+	// #region Getters
+	/**
+	 * @memberof MiddlewareFactory
+	 * @async
+	 * @static
+	 * @override
+	 * @function
+	 * @name MiddlewareName
+	 *
+	 * @returns {string} - Name of this middleware.
+	 *
+	 * @description
+	 * Returns the name of this middleware - Basics
+	 */
+	static get MiddlewareName() {
+		return 'Basics';
+	}
+	// #endregion
+
+	// #region Private Static Members
+	static #tenantInstance = undefined;
+	// #endregion
+}

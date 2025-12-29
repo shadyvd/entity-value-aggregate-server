@@ -1,0 +1,125 @@
+{
+	"name": "@twyr/server-dependency-manager",
+	"displayName": "Entity Value Aggregate Server Dependency Manager",
+	"description": "IoC / DI for the Entity Value Aggregate Server",
+	"homepage": "https://github.com/twyr/entity-value-aggregate-server/src/main/README.md",
+	"license": "MITNFA",
+	"version": "0.1.0",
+	"readme": "README.md",
+	"main": "./index.js",
+	"exports": "./index.js",
+	"type": "module",
+	"keywords": [
+		"lifecycle",
+		"twyr",
+		"javascript",
+		"manager",
+		"nodejs",
+		"package"
+	],
+	"author": {
+		"name": "Vish Desai",
+		"email": "vish.desai@auramwellness.com",
+		"url": "https://github.com/shadyvd/"
+	},
+	"contributors": [
+		{
+			"name": "Vish Desai",
+			"email": "vish.desai@auramwellness.com",
+			"url": "https://github.com/shadyvd/"
+		}
+	],
+	"maintainers": [
+		{
+			"name": "Vish Desai",
+			"email": "vish.desai@auramwellness.com",
+			"url": "https://github.com/shadyvd/"
+		}
+	],
+	"repository": {
+		"type": "git",
+		"url": "ssh://git@github.com:twyr/entity-value-aggregate-server.git"
+	},
+	"bugs": {
+		"url": "https://github.com/twyr/entity-value-aggregate-server"
+	},
+	"files": [
+		"lib",
+		"./README.md",
+		"./package.json"
+	],
+	"dependencies": {
+		"@twyr/framework-classes": "*"
+	},
+	"devDependencies": {
+		"@eslint/js": "9.39.2",
+		"@eslint/eslintrc": "3.3.3",
+		"chai": "6.2.2",
+		"cloc": "2.11.0",
+		"dependency-cruiser": "17.3.5",
+		"eslint": "9.39.2",
+		"eslint-config-prettier": "10.1.8",
+		"eslint-formatter-junit": "9.0.1",
+		"eslint-plugin-editorconfig": "4.0.3",
+		"eslint-plugin-jsdoc": "61.5.0",
+		"eslint-plugin-json": "4.0.1",
+		"eslint-plugin-jsonc": "2.21.0",
+		"eslint-plugin-mocha": "11.2.0",
+		"eslint-plugin-n": "17.23.1",
+		"eslint-plugin-prettier": "5.5.4",
+		"eslint-plugin-security": "3.0.1",
+		"eslint-plugin-security-node": "1.1.4",
+		"eslint-plugin-unicorn": "62.0.0",
+		"eslintcc": "0.8.3",
+		"global": "4.4.0",
+		"grunt": "1.6.1",
+		"grunt-contrib-clean": "2.0.1",
+		"grunt-coveralls": "2.0.0",
+		"grunt-env": "1.0.1",
+		"grunt-eslint": "26.0.0",
+		"grunt-exec": "3.0.0",
+		"grunt-jsbeautifier": "0.2.13",
+		"grunt-xmlstoke": "0.7.1",
+		"jsdoc": "4.0.5",
+		"js-beautify": "1.15.4",
+		"lint-staged": "16.2.7",
+		"load-grunt-tasks": "5.1.0",
+		"mocha": "11.7.5",
+		"mocha-junit-reporter": "2.2.1",
+		"nyc": "17.1.0",
+		"prettier": "3.7.4",
+		"sloc": "0.3.2"
+	},
+	"scripts": {
+		"build": "npx --no-install grunt --gruntfile gruntfile.cjs",
+		"build:clean": "npm run clean && npx --no-install grunt --gruntfile gruntfile.cjs",
+		"clean": "mkdir -p ./docs/api && rm -rf ./docs/api && mkdir -p ./buildresults && rm -rf ./buildresults && mkdir -p ./coverage && rm -rf ./coverage && mkdir -p ./logs && touch ./logs/init.log && rm -f ./logs/*.log && mkdir -p ./.nyc_output && rm -rf ./.nyc_output && mkdir -p ./depcruise && rm -rf ./depcruise && mkdir -p ./stats && rm -rf ./stats",
+		"docs": "npx --no-install jsdoc --verbose --configure ./.jsdocrc.json",
+		"deps": "mkdir -p depcruise && npx --no-install depcruise --config ./.dependency-cruiser.cjs --output-type json -f ./depcruise/deps.json . && npx --no-install depcruise --config ./.dependency-cruiser.cjs --output-type archi . | dot -T svg > ./depcruise/architecture.svg && npx --no-install depcruise --config ./.dependency-cruiser.cjs --output-type err-html -f ./depcruise/error.html .",
+		"force-build": "npx --no-install grunt --force",
+		"force-build:clean": "npm run clean && npx --no-install grunt --force",
+		"lint": "npm run lint:js && npm run lint:misc",
+		"lint:fix": "npm run lint:js:fix && npm run lint:misc:fix",
+		"lint:js": "npx --no-install prettier './**/*.{js,json}' --no-error-on-unmatched-pattern --cache --list-different && npx --no-install eslint './**/*.{js,json}' --no-error-on-unmatched-pattern --cache",
+		"lint:js:fix": "npx --no-install prettier './**/*.{js,json}' --no-error-on-unmatched-pattern --cache --write && npx --no-install eslint './**/*.{js,json}' --no-error-on-unmatched-pattern --cache --fix",
+		"lint:misc": "npx --no-install prettier './**/*.{html,yml}' --no-error-on-unmatched-pattern --cache --list-different",
+		"lint:misc:fix": "npx --no-install prettier './**/*.{html,yml}' --no-error-on-unmatched-pattern --cache --write",
+		"stats": "mkdir -p stats && npm run stats:cloc && npm run stats:cloc-md",
+		"stats:cc-text": "npx --no-install eslintcc --average --show-rules --max-rank f --format text --no-inline-config . | tee ./stats/complexity.txt",
+		"stats:cc-json": "npx --no-install eslintcc --average --show-rules --max-rank f --format json --no-inline-config . > ./stats/complexity.json",
+		"stats:sloc-table": "npx --no-install sloc --details --format cli-table --exclude '.husky|.github|.vscode|buildresults|coverage|depcruise|deploy|docs|jsdoc_default|log|node_modules|stats|templates|.commitlintrc.json|.dependency-cruiser.cjs|ecosystem.config.cjs|gruntfile.cjs|test-results.xml' --keys source,comment,todo,empty,total . | tee ./stats/sloc.txt",
+		"stats:sloc-json": "npx --no-install sloc --details --format json --exclude '.husky|.github|.vscode|buildresults|coverage|depcruise|deploy|docs|jsdoc_default|log|node_modules|stats|templates|.commitlintrc.json|.dependency-cruiser.cjs|ecosystem.config.cjs|gruntfile.cjs|test-results.xml' . > ./stats/sloc.json",
+		"stats:cloc": "npx --no-install cloc --git --exclude-dir=.husky,.github,.vscode,.nyc_output,buildresults,coverage,depcruise,deploy,docs,jsdoc_default,logs,node_modules,stats,.commitlintrc.json,.dependency-cruiser.cjs,ecosystem.config.cjs,gruntfile.cjs,test-results.xml .",
+		"stats:cloc-md": "npx --no-install cloc --git --by-file-by-lang --exclude-dir=.husky,.github,.vscode,.nyc_output,buildresults,coverage,depcruise,deploy,docs,jsdoc_default,logs,node_modules,stats,.commitlintrc.json,.dependency-cruiser.cjs,ecosystem.config.cjs,gruntfile.cjs,test-results.xml --md . > ./stats/LINES_OF_CODE.md",
+		"test": "npm run test:run && npm run test:coverage",
+		"test:coverage": "NODE_ENV=test npx --no-install nyc --reporter=cobertura --reporter=lcovonly --reporter=text --reporter=text-summary mocha",
+		"test:run": "NODE_ENV=test npx --no-install mocha --reporter=spec"
+	},
+	"engines": {
+		"node": ">= 18.0.0"
+	},
+	"directories": {
+		"doc": "docs",
+		"test": "tests"
+	}
+}

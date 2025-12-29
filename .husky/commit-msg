@@ -1,0 +1,1 @@
+git interpret-trailers --trailer sign --in-place $1 && npx --no-install commitlint --edit $1

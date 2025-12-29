@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+		<title>JSDoc: Source: lib/lifecycle_managers/domain-lifecycle-manager.js</title>
+		<script src="scripts/prettify/prettify.js"> </script>
+		<script src="scripts/prettify/lang-css.js"> </script>
+		<!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+		<link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+		<link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+	</head>
+
+	<body>
+		<div id="main">
+			<h1 class="page-title">Source: lib/lifecycle_managers/domain-lifecycle-manager.js</h1>
+			<section>
+				<article>
+					<pre class="prettyprint source linenums"><code>/**
+ * Imports for this file
+ * @ignore
+ */
+import { EVASBaseFactory } from '../factories/evas-base-factory.js';
+import { EVASBaseLifecycleManager } from './evas-base-lifecycle-manager.js';
+
+/**
+ * @class DomainLifecycleManager
+ * @extends EVASBaseLifecycleManager
+ *
+ * @param {string} [location] - __dirname for this file in CJS, basically
+ * @param {object} [domainInterface] - Domain functionality exposed to sub-artifacts
+ *
+ * @classdesc
+ * The Domain Lifecycle Manager Class.
+ *
+ */
+class DomainLifecycleManager extends EVASBaseLifecycleManager {
+	// #region Constructor
+	constructor(location, domainInterface) {
+		super(location, domainInterface);
+		this.#domainInterface = domainInterface;
+	}
+	// #endregion
+
+	// #region Lifecycle API
+	/**
+	 * @memberof DomainLifecycleManager
+	 * @async
+	 * @instance
+	 * @override
+	 * @function
+	 * @name load
+	 *
+	 * @returns {null} - Nothing
+	 *
+	 * @description
+	 * Loads repositories and bounded contexts belonging to this Domain
+	 *
+	 */
+	async load() {
+		const errors = [];
+
+		try {
+			await super.load?.();
+		} catch (error) {
+			errors?.push?.(error);
+		}
+
+		// Step 1: Load the Domain repositories
+		try {
+			await this.#loadRepositories?.();
+		} catch (error) {
+			errors?.push?.(error);
+		}
+
+		// Step 2: Load the Domain bounded contexts
+		try {
+			await this.#loadBoundedContexts?.();
+		} catch (error) {
+			errors?.push?.(error);
+		}
+		4;
+		// Step 3: Load the Sub-Domains
+		try {
+			await this.#loadDomains?.();
+		} catch (error) {
+			errors?.push?.(error);
+		}
+
+		if (!errors?.length) return;
+
+		const errorToBeThrown = new AggregateError(
+			errors,
+			`Error loading ${this?.name}`
+		);
+
+		throw errorToBeThrown;
+	}
+
+	/**
+	 * @memberof DomainLifecycleManager
+	 * @async
+	 * @instance
+	 * @override
+	 * @function
+	 * @name unload
+	 *
+	 * @returns {undefined} - Nothing.
+	 *
+	 * @description
+	 * Unloads bounded contexts and repositories belonging to this domain
+	 *
+	 */
+	async unload() {
+		let errors = [];
+
+		// Step 1: Unload the subdomains
+		try {
+			await this._unloadArtifacts?.(this.#domains);
+			this.#domains?.clear?.();
+		} catch (error) {
+			errors?.push?.(error);
+		}
+
+		// Step 2: Unload the bounded contexts
+		try {
+			await this._unloadArtifacts?.(this.#boundedContexts);
+			this.#boundedContexts?.clear?.();
+		} catch (error) {
+			errors?.push?.(error);
+		}
+
+		// Step 3: Unload the API and repositories
+		try {
+			await this?.domainInterface?.apiRegistry?.unregisterAll?.();
+		} catch (error) {
+			errors?.push?.(error);
+		}
+
+		try {
+			await this?.domainInterface?.iocContainer?.unregisterAll?.();
+		} catch (error) {
+			errors?.push?.(error);
+		}
+
+		// Finally, call the base class stuff
+		try {
+			await super.unload?.();
+			this.#domainInterface = undefined;
+		} catch (error) {
+			errors?.push?.(error);
+		}
+
+		if (!errors?.length) return;
+		const errorToBeThrown = new AggregateError(
+			errors,
+			`Error unloading ${this?.name}`
+		);
+
+		throw errorToBeThrown;
+	}
+	// #endregion
+
+	// #region Private Methods
+	/**
+	 * @memberof DomainLifecycleManager
+	 * @async
+	 * @instance
+	 * @function
+	 * @name #loadDomains
+	 *
+	 * @returns {null} - Nothing.
+	 *
+	 * @description
+	 * Loads all the next-level sub-domains of this Domain
+	 *
+	 */
+	async #loadDomains() {
+		const SubdomainFactories = await this._loadArtifacts?.('domains');
+		for (const SubdomainFactory of SubdomainFactories) {
+			const domainInstance = await SubdomainFactory?.createInstances?.(
+				this.#domainInterface
+			);
+
+			this.#domains?.set?.(SubdomainFactory?.DomainName, domainInstance);
+		}
+	}
+
+	/**
+	 * @memberof DomainLifecycleManager
+	 * @async
+	 * @instance
+	 * @function
+	 * @name #loadBoundedContexts
+	 *
+	 * @returns {null} - Nothing.
+	 *
+	 * @description
+	 * Loads all the top-level BoundedContexts of this Domain
+	 *
+	 */
+	async #loadBoundedContexts() {
+		const BoundedContextFactories =
+			await this._loadArtifacts?.('bounded_contexts');
+		for (const BoundedContextFactory of BoundedContextFactories) {
+			const boundedContextInstance =
+				await BoundedContextFactory?.createInstances?.(
+					this.#domainInterface
+				);
+
+			this.#boundedContexts?.set?.(
+				BoundedContextFactory?.BoundedContextName,
+				boundedContextInstance
+			);
+		}
+	}
+
+	/**
+	 * @memberof DomainLifecycleManager
+	 * @async
+	 * @instance
+	 * @function
+	 * @name #loadRepositories
+	 *
+	 * @returns {null} - Nothing.
+	 *
+	 * @description
+	 * Loads all the top-level Repositories offered by this Server
+	 *
+	 */
+	async #loadRepositories() {
+		const RepositoryFactories = await this._loadArtifacts?.('repositories');
+		for (const RepositoryFactory of RepositoryFactories) {
+			RepositoryFactory['$domain_interface'] = this.#domainInterface;
+			await this.#domainInterface?.iocContainer?.register?.(
+				RepositoryFactory?.RepositoryName,
+				RepositoryFactory
+			);
+		}
+	}
+	// #endregion
+
+	// #region Private Fields
+	#domainInterface = undefined;
+
+	#domains = new Map();
+	#boundedContexts = new Map();
+	// #endregion
+}
+/**
+ * @class DomainLifecycleManagerFactory
+ * @extends EVASBaseFactory
+ *
+ * @classdesc
+ * The Domain Lifecycle Manager Class Factory.
+ */
+export class DomainLifecycleManagerFactory extends EVASBaseFactory {
+	// #region Constructor
+	// eslint-disable-next-line jsdoc/require-jsdoc
+	constructor() {
+		super();
+	}
+	// #endregion
+
+	// #region Creation API
+	/**
+	 * @memberof DomainLifecycleManagerFactory
+	 * @async
+	 * @static
+	 * @override
+	 * @function
+	 * @name createInstances
+	 *
+	 * @param {string} [location] - __dirname for this file in CJS, basically
+	 * @param {object} [domainInterface] - Domain functionality exposed to sub-artifacts
+	 *
+	 * @returns {DomainLifecycleManager} - Instance of the lifecycle manager.
+	 *
+	 */
+	static async createInstances(location, domainInterface) {
+		const locationKey = Buffer?.from?.(location)?.toString?.('base64');
+
+		if (
+			DomainLifecycleManagerFactory.#domainLifecycleManagerInstances?.has?.(
+				locationKey
+			)
+		) {
+			return DomainLifecycleManagerFactory.#domainLifecycleManagerInstances?.get?.(
+				locationKey
+			);
+		}
+
+		const domainLifecycleManagerInstance = new DomainLifecycleManager(
+			location,
+			domainInterface
+		);
+		await domainLifecycleManagerInstance?.load?.();
+
+		DomainLifecycleManagerFactory.#domainLifecycleManagerInstances?.set?.(
+			locationKey,
+			domainLifecycleManagerInstance
+		);
+
+		return domainLifecycleManagerInstance;
+	}
+
+	/**
+	 * @memberof DomainLifecycleManagerFactory
+	 * @async
+	 * @static
+	 * @override
+	 * @function
+	 * @name destroyInstances
+	 *
+	 * @param {string} [location] - __dirname for this file in CJS, basically
+	 *
+	 * @returns {null} - Nothing
+	 *
+	 */
+	static async destroyInstances(location) {
+		const locationKey = Buffer?.from?.(location)?.toString?.('base64');
+
+		const domainLifecycleManagerInstance =
+			DomainLifecycleManagerFactory.#domainLifecycleManagerInstances?.get?.(
+				locationKey
+			);
+
+		if (!domainLifecycleManagerInstance) return;
+
+		await domainLifecycleManagerInstance?.unload?.();
+		DomainLifecycleManagerFactory.#domainLifecycleManagerInstances?.delete?.(
+			locationKey
+		);
+	}
+	// #endregion
+
+	// #region Private Static Members
+	static #domainLifecycleManagerInstances = new Map();
+	// #endregion
+}
+</code></pre>
+				</article>
+			</section>
+		</div>
+		<nav>
+			<h2><a href="index.html">Home</a></h2>
+			<h3>Classes</h3>
+			<ul>
+				<li><a href="BoundedContextLifecycleManager.html">BoundedContextLifecycleManager</a></li>
+				<li><a href="BoundedContextLifecycleManagerFactory.html">BoundedContextLifecycleManagerFactory</a></li>
+				<li><a href="DomainLifecycleManager.html">DomainLifecycleManager</a></li>
+				<li><a href="DomainLifecycleManagerFactory.html">DomainLifecycleManagerFactory</a></li>
+				<li><a href="EVASBaseArtifact.html">EVASBaseArtifact</a></li>
+				<li><a href="EVASBaseBoundedContext.html">EVASBaseBoundedContext</a></li>
+				<li><a href="EVASBaseClass.html">EVASBaseClass</a></li>
+				<li><a href="EVASBaseDomain.html">EVASBaseDomain</a></li>
+				<li><a href="EVASBaseFactory.html">EVASBaseFactory</a></li>
+				<li><a href="EVASBaseIngressSurface.html">EVASBaseIngressSurface</a></li>
+				<li><a href="EVASBaseLifecycleManager.html">EVASBaseLifecycleManager</a></li>
+				<li><a href="EVASBaseMiddleware.html">EVASBaseMiddleware</a></li>
+				<li><a href="EVASBaseRepository.html">EVASBaseRepository</a></li>
+				<li><a href="EVASBaseSurface.html">EVASBaseSurface</a></li>
+				<li><a href="ServerLifecycleManager.html">ServerLifecycleManager</a></li>
+				<li><a href="ServerLifecycleManagerFactory.html">ServerLifecycleManagerFactory</a></li>
+			</ul>
+		</nav>
+		<br class="clear">
+		<footer>
+			Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a>
+		</footer>
+		<script>
+			prettyPrint();
+
+		</script>
+		<script src="scripts/linenumber.js"> </script>
+	</body>
+
+</html>

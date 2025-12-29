@@ -1,0 +1,36 @@
+{
+	"allowUncaught": false,
+	"asyncOnly": false,
+	"bail": false,
+	"checkLeaks": true,
+	"clearRequireCache": false,
+	"color": true,
+	"delay": false,
+	"diff": true,
+	"exit": false,
+	"forbidOnly": false,
+	"forbidPending": false,
+	"fullTrace": false,
+	"noFail": false,
+	"package": "./package.json",
+	"quiet": false,
+	"recursive": true,
+	"reporter": "mocha-junit-reporter",
+	"slow": 3000,
+	"sort": false,
+	"spec": "tests/**/*.spec.cjs",
+	"timeout": 50000,
+	"trace-warnings": true,
+	"ui": "bdd",
+	"v8-stack-trace-limit": 100,
+	"watch": false,
+
+	"extension": ["spec.cjs"],
+	"global": [],
+	"reporterOptions": {
+		"mochaFile": "./buildresults/test-results.xml"
+	},
+	"require": ["./tests/setup-mocks.cjs"],
+	"watch-files": [],
+	"watch-ignore": []
+}

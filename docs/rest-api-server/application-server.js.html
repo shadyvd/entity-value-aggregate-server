@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+		<title>JSDoc: Source: application-server.js</title>
+		<script src="scripts/prettify/prettify.js"> </script>
+		<script src="scripts/prettify/lang-css.js"> </script>
+		<!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+		<link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+		<link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+	</head>
+
+	<body>
+		<div id="main">
+			<h1 class="page-title">Source: application-server.js</h1>
+			<section>
+				<article>
+					<pre class="prettyprint source linenums"><code>/**
+ * Imports for this file
+ * @ignore
+ */
+import { EventEmitter } from 'node:events';
+
+import { EVASBaseArtifact } from '@twyr/framework-classes';
+import { EVASBaseFactory } from '@twyr/framework-classes';
+
+import { ServerLifecycleManagerFactory } from '@twyr/framework-classes';
+
+import { APIRegistry } from '@twyr/api-registry';
+import { IocContainer } from '@twyr/server-dependency-manager';
+
+/**
+ * @class ApplicationServer
+ * @extends EVASBaseArtifact
+ *
+ * @param {string} [location] - __dirname for this file, basically
+ * @param {string} [serverName] - name for this application server
+ *
+ * @classdesc The Server's Application Class.
+ *
+ */
+class ApplicationServer extends EVASBaseArtifact {
+	// #region Constructor
+	constructor(location, serverName) {
+		super(location);
+		this.#serverName = serverName;
+	}
+	// #endregion
+
+	// #region Startup / Shutdown
+	/**
+	 * @memberof ApplicationServer
+	 * @async
+	 * @instance
+	 * @override
+	 * @function
+	 * @name load
+	 *
+	 * @returns {null} - Nothing.
+	 *
+	 * @description Loads / Initializes / Starts-up sub-artifacts.
+	 *
+	 */
+	async load() {
+		// Step 1: Basic init
+		await super.load?.();
+
+		// Step 2: Instantiate the loader and IoC container
+		this.#apiRegistry = new APIRegistry(this.#serverName, undefined);
+		this.#iocContainer = new IocContainer(this.#serverName, undefined);
+		this.#eventEmitter = new EventEmitter();
+
+		const serverInterface = Object?.assign?.(
+			{},
+			{
+				apiRegistry: this.#apiRegistry,
+				iocContainer: this.#iocContainer,
+				eventEmitter: this.#eventEmitter
+			}
+		);
+		await ServerLifecycleManagerFactory?.createInstances?.(
+			this?.__dirname,
+			serverInterface
+		);
+
+		// Step 3: Start listening for HTTP Requests
+		const restApiRepository =
+			await this.#iocContainer?.resolve?.('RestApi');
+		await restApiRepository?.start?.();
+
+		// Finally, announce we're up...
+		const loggerRepository = await this.#iocContainer?.resolve?.('Logger');
+		loggerRepository?.info?.(
+			`\n\nTICKING AWAY THE MOMENTS THAT MAKE UP A DULL DAY...`
+		);
+
+		return;
+	}
+
+	/**
+	 * @memberof ApplicationServer
+	 * @async
+	 * @instance
+	 * @override
+	 * @function
+	 * @name unload
+	 *
+	 * @returns {null} - Nothing.
+	 *
+	 * @description Shuts-down / Un-initializes / Un-loads sub-artifacts.
+	 *
+	 */
+	async unload() {
+		// Step 1: Announce that we're going down..
+		const loggerRepository = await this.#iocContainer?.resolve?.('Logger');
+		loggerRepository?.info?.(
+			`\n\nTHE TIME IS GONE, THE SONG IS OVER\nTHOUGHT I'D SOMETHING MORE TO SAY...\n`
+		);
+
+		// Step 2: Stop the REST API server
+		const restApiRepository =
+			await this.#iocContainer?.resolve?.('RestApi');
+		await restApiRepository?.stop?.();
+
+		// Step 3: Unload the sub-artifacts
+		await ServerLifecycleManagerFactory?.destroyInstances?.();
+
+		// Step 4: Un-instantiate.
+		this.#apiRegistry = undefined;
+		this.#iocContainer = undefined;
+
+		// Finally, Basic un-init
+		await super.unload?.();
+		this.#serverName = undefined;
+		return;
+	}
+	// #endregion
+
+	// #region Private Fields
+	#apiRegistry = undefined;
+	#iocContainer = undefined;
+	#eventEmitter = undefined;
+
+	#serverName = undefined;
+	// #endregion
+}
+
+/**
+ * @class ApplicationServerFactory
+ * @extends EVASBaseFactory
+ *
+ * @classdesc The Application Server Class Factory.
+ */
+export default class ApplicationServerFactory extends EVASBaseFactory {
+	// #region Constructor
+	// eslint-disable-next-line jsdoc/require-jsdoc
+	constructor() {
+		super();
+	}
+	// #endregion
+
+	// #region Creation API
+	/**
+	 * @memberof ApplicationServerFactory
+	 * @async
+	 * @static
+	 * @override
+	 * @function
+	 * @name createInstances
+	 *
+	 * @param {string} [location] - __dirname for this file in CJS, basically
+	 * @param {string} [serverName] - process name of this server
+	 *
+	 * @returns {ApplicationServer} - The server application instance.
+	 *
+	 */
+	static async createInstances(location, serverName) {
+		if (!ApplicationServerFactory.#ApplicationServerInstance) {
+			ApplicationServerFactory.#ApplicationServerInstance =
+				new ApplicationServer(location, serverName);
+
+			await ApplicationServerFactory.#ApplicationServerInstance?.load?.();
+		}
+
+		return ApplicationServerFactory.#ApplicationServerInstance;
+	}
+
+	/**
+	 * @memberof ApplicationServerFactory
+	 * @async
+	 * @static
+	 * @override
+	 * @function
+	 * @name destroyInstances
+	 *
+	 * @returns {undefined} - Nothing.
+	 *
+	 * @description Clears the cached {ApplicationServer} instances
+	 *
+	 */
+	static async destroyInstances() {
+		if (!ApplicationServerFactory.#ApplicationServerInstance) return;
+
+		await ApplicationServerFactory.#ApplicationServerInstance?.unload?.();
+		ApplicationServerFactory.#ApplicationServerInstance = undefined;
+	}
+	// #endregion
+
+	// #region Private Static Members
+	static #ApplicationServerInstance = undefined;
+	// #endregion
+}
+</code></pre>
+				</article>
+			</section>
+		</div>
+		<nav>
+			<h2><a href="index.html">Home</a></h2>
+			<h3>Classes</h3>
+			<ul>
+				<li><a href="AdminDomain.html">AdminDomain</a></li>
+				<li><a href="ApplicationServer.html">ApplicationServer</a></li>
+				<li><a href="ApplicationServerFactory.html">ApplicationServerFactory</a></li>
+				<li><a href="Audit.html">Audit</a></li>
+				<li><a href="Auth.html">Auth</a></li>
+				<li><a href="Basics.html">Basics</a></li>
+				<li><a href="BoundedContextFactory.html">BoundedContextFactory</a></li>
+				<li><a href="Cache.html">Cache</a></li>
+				<li><a href="Configuration.html">Configuration</a></li>
+				<li><a href="Contact.html">Contact</a></li>
+				<li><a href="DomainFactory.html">DomainFactory</a></li>
+				<li><a href="IngressSurfaceFactory.html">IngressSurfaceFactory</a></li>
+				<li><a href="Logger.html">Logger</a></li>
+				<li><a href="Main.html">Main</a></li>
+				<li><a href="MiddlewareFactory.html">MiddlewareFactory</a></li>
+				<li><a href="ModelFactory.html">ModelFactory</a></li>
+				<li><a href="MongoDB.html">MongoDB</a></li>
+				<li><a href="Notification.html">Notification</a></li>
+				<li><a href="Profile.html">Profile</a></li>
+				<li><a href="Renderer.html">Renderer</a></li>
+				<li><a href="RepositoryFactory.html">RepositoryFactory</a></li>
+				<li><a href="RestApi.html">RestApi</a></li>
+				<li><a href="Roles.html">Roles</a></li>
+				<li><a href="SQLDatabase.html">SQLDatabase</a></li>
+				<li><a href="Session.html">Session</a></li>
+				<li><a href="SessionManager.html">SessionManager</a></li>
+				<li><a href="SurfaceFactory.html">SurfaceFactory</a></li>
+				<li><a href="Tenant.html">Tenant</a></li>
+				<li><a href="UserDomain.html">UserDomain</a></li>
+			</ul>
+			<h3>Global</h3>
+			<ul>
+				<li><a href="global.html#localStrategy">localStrategy</a></li>
+				<li><a href="global.html#serializeDeserialize">serializeDeserialize</a></li>
+				<li><a href="global.html#userSessionCache">userSessionCache</a></li>
+			</ul>
+		</nav>
+		<br class="clear">
+		<footer>
+			Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a>
+		</footer>
+		<script>
+			prettyPrint();
+
+		</script>
+		<script src="scripts/linenumber.js"> </script>
+	</body>
+
+</html>

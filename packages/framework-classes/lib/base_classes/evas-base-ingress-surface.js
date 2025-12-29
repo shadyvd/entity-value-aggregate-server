@@ -1,0 +1,207 @@
+/**
+ * Imports for this file
+ * @ignore
+ */
+import merge from 'lodash.merge';
+import { EVASBaseArtifact } from './evas-base-artifact.js';
+
+/**
+ * @class EVASBaseIngressSurface
+ * @extends EVASBaseArtifact
+ *
+ * @param {string} [location] - __dirname for this file in CJS, basically
+ * @param {object} [iocContainer] - IoC module providing DI services
+ * @param {object} [configuration] - The configuration needed to connect to external api, if needed
+ *
+ * @classdesc
+ * The Base Class for all Repositories.
+ */
+export class EVASBaseIngressSurface extends EVASBaseArtifact {
+	// #region Constructor
+	// eslint-disable-next-line jsdoc/require-jsdoc
+	constructor(location, iocContainer, configuration) {
+		super(location);
+
+		this.#iocContainer = iocContainer;
+		this.#configuration = configuration;
+	}
+	// #endregion
+
+	// #region Lifecycle Methods
+	/**
+	 * @memberof EVASBaseIngressSurface
+	 * @async
+	 * @instance
+	 * @override
+	 * @function
+	 * @name load
+	 *
+	 * @returns {null} - Nothing
+	 *
+	 * @description
+	 * To be overridden by artifact implementations - for implementing custom
+	 * pre-start logic
+	 *
+	 */
+	async load() {
+		await super.load?.();
+	}
+
+	/**
+	 * @memberof EVASBaseIngressSurface
+	 * @async
+	 * @instance
+	 * @override
+	 * @function
+	 * @name start
+	 *
+	 * @returns {null} - Nothing
+	 *
+	 * @description
+	 * To be overridden by artifact implementations - for implementing custom
+	 * start logic
+	 *
+	 */
+	async start() {
+		// Nothing to do here - to be overridden by derived classes
+	}
+
+	/**
+	 * @memberof EVASBaseIngressSurface
+	 * @async
+	 * @instance
+	 * @override
+	 * @function
+	 * @name stop
+	 *
+	 * @returns {null} - Nothing
+	 *
+	 * @description
+	 * To be overridden by artifact implementations - for implementing custom
+	 * stop logic
+	 *
+	 */
+	async stop() {
+		// Nothing to do here - to be overridden by derived classes
+	}
+
+	/**
+	 * @memberof EVASBaseIngressSurface
+	 * @async
+	 * @instance
+	 * @override
+	 * @function
+	 * @name unload
+	 *
+	 * @returns {null} - Nothing
+	 *
+	 * @description
+	 * To be overridden by artifact implementations - for implementing custom
+	 * post-stop logic
+	 *
+	 */
+	async unload() {
+		this.#configuration = undefined;
+		this.#iocContainer = undefined;
+
+		await super.unload?.();
+	}
+	// #endregion
+
+	// #region Utility Methods to be used by derived classes
+	/**
+	 * @memberof EVASBaseIngressSurface
+	 * @async
+	 * @instance
+	 * @protected
+	 * @function
+	 * @name _mergeConfiguration
+	 *
+	 * @param {object} defaultConfiguration - The configuration to use when nothing is passed in
+	 *
+	 * @returns {object} - Merged configuration object
+	 *
+	 * @description
+	 * Merges the configurations for this Repository instance:
+	 * - Start with an empty object
+	 * - Merge the default configuration
+	 * - Merge the configuration from the .env file / process.env stuff
+	 * - Merge the configuration passed into this instance
+	 *
+	 */
+	async _mergeConfiguration(defaultConfiguration) {
+		const configRepository =
+			await this?.iocContainer?.resolve?.('Configuration');
+
+		const environmentConfiguration = await configRepository?.getConfig?.(
+			this?.name
+		);
+
+		const instanceConfiguration = this?.configuration ?? {};
+
+		const mergedConfiguration = merge?.(
+			{},
+			defaultConfiguration,
+			environmentConfiguration,
+			instanceConfiguration
+		);
+
+		return mergedConfiguration;
+	}
+	// #endregion
+
+	// #region Getters / Setters
+	/**
+	 * @memberof EVASBaseIngressSurface
+	 * @instance
+	 * @member {object} configuration
+	 *
+	 * @returns {object} - configuration object
+	 *
+	 * @description
+	 * Returns the configuration object that was used to
+	 * initialize this Repository instance
+	 *
+	 */
+	get configuration() {
+		return this.#configuration;
+	}
+
+	/**
+	 * @memberof EVASBaseIngressSurface
+	 * @instance
+	 * @member {object} iocContainer
+	 *
+	 * @returns {object} - IoC Object Instance
+	 *
+	 * @description
+	 * Returns the IoC Class instance that loaded
+	 * this Repository instance
+	 *
+	 */
+	get iocContainer() {
+		return this.#iocContainer;
+	}
+
+	/**
+	 * @memberof EVASBaseIngressSurface
+	 * @instance
+	 * @member {object} interface
+	 *
+	 * @returns {object} - Repository interface
+	 *
+	 * @description
+	 * Returns the interface this Repository instance
+	 * exposes to the rest of the Server
+	 *
+	 */
+	get interface() {
+		return this;
+	}
+	// #endregion
+
+	// #region Private Fields
+	#configuration = undefined;
+	#iocContainer = undefined;
+	// #endregion
+}

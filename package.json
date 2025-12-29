@@ -1,0 +1,113 @@
+{
+	"name": "@twyr/entity-value-aggregate-server",
+	"type": "module",
+	"displayName": "Entity Value Aggregate Server",
+	"description": "Entity Value Aggregate Server monorepo in node.js",
+	"homepage": "https://github.com/twyr/entity-value-aggregate-server/src/main/README.md",
+	"license": "MITNFA",
+	"version": "0.1.0",
+	"readme": "README.md",
+	"private": true,
+	"keywords": [
+		"backend",
+		"cqrs",
+		"ddd",
+		"twyr",
+		"javascript",
+		"modular",
+		"monolith",
+		"nodejs",
+		"entity-value-aggregate-server",
+		"server",
+		"strategy",
+		"template"
+	],
+	"author": {
+		"name": "Vish Desai",
+		"email": "vish.desai@auramwellness.com",
+		"url": "https://github.com/shadyvd/"
+	},
+	"contributors": [
+		{
+			"name": "Vish Desai",
+			"email": "vish.desai@auramwellness.com",
+			"url": "https://github.com/shadyvd/"
+		}
+	],
+	"maintainers": [
+		{
+			"name": "Vish Desai",
+			"email": "vish.desai@auramwellness.com",
+			"url": "https://github.com/shadyvd/"
+		}
+	],
+	"repository": {
+		"type": "git",
+		"url": "ssh://git@github.com:twyr/entity-value-aggregate-server.git"
+	},
+	"bugs": {
+		"url": "https://github.com/twyr/entity-value-aggregate-server"
+	},
+	"devDependencies": {
+		"@commitlint/cli": "20.2.0",
+		"@commitlint/config-conventional": "20.2.0",
+		"@eslint/eslintrc": "3.3.3",
+		"@eslint/js": "9.39.2",
+		"commitizen": "4.3.1",
+		"cz-customizable": "7.5.1",
+		"editorconfig": "3.0.1",
+		"eslint": "9.39.2",
+		"eslint-config-prettier": "10.1.8",
+		"eslint-formatter-junit": "9.0.1",
+		"eslint-plugin-editorconfig": "4.0.3",
+		"eslint-plugin-jsdoc": "61.5.0",
+		"eslint-plugin-json": "4.0.1",
+		"eslint-plugin-jsonc": "2.21.0",
+		"eslint-plugin-mocha": "11.2.0",
+		"eslint-plugin-n": "17.23.1",
+		"eslint-plugin-prettier": "5.5.4",
+		"eslint-plugin-security": "3.0.1",
+		"eslint-plugin-security-node": "1.1.4",
+		"eslint-plugin-unicorn": "62.0.0",
+		"git-split-diffs": "2.3.0",
+		"global": "4.4.0",
+		"husky": "9.1.7",
+		"is-ci": "4.1.0",
+		"jsdoc-to-markdown": "9.1.3",
+		"lint-staged": "16.2.7",
+		"npm-check-updates": "19.2.0",
+		"prettier": "3.7.4"
+	},
+	"scripts": {
+		"build": "npm run build --workspaces --if-present",
+		"build:clean": "npm run clean && npm run build",
+		"check-updates": "npx --no-install npm-check-updates -i -u --root --workspaces",
+		"clean": "npm run clean --workspaces --if-present",
+		"db:migrate": "npm run db:migrate --workspaces --if-present",
+		"db:rollback": "npm run db:rollback --workspaces --if-present",
+		"db:seed": "npm run db:seed --workspaces --if-present",
+		"force-build": "npm run force-build --workspaces --if-present",
+		"force-build:clean": "npm run clean && npm run force-build",
+		"lint": "npm run lint --workspaces --if-present",
+		"lint-staged": "npx lint-staged --allow-empty",
+		"prepare": "husky",
+		"start": "npm start --workspaces --if-present",
+		"stats": "npm run stats --workspaces --if-present",
+		"test": "npm run test --workspaces --if-present"
+	},
+	"engines": {
+		"node": ">=18.0.0"
+	},
+	"workspaces": [
+		"packages/api-registry",
+		"packages/error-serializer",
+		"packages/framework-classes",
+		"packages/server-dependency-manager",
+		"servers/rest-api-server"
+	],
+	"config": {
+		"cz-customizable": {
+			"config": "./.cz-config.cjs"
+		}
+	}
+}

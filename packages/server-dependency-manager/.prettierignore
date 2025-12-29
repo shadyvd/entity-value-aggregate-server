@@ -1,0 +1,12 @@
+.github/
+.husky/
+.vscode/
+buildresults/
+coverage/
+depcruise/
+deploy/
+docs/
+jsdoc_default/
+logs/
+node_modules/
+stats/

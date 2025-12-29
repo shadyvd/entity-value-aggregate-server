@@ -1,0 +1,42 @@
+{
+	"tags": {
+		"allowUnknownTags": true,
+		"dictionaries": ["jsdoc"]
+	},
+	"source": {
+		"include": ["./index.js", "./lib", "./README.md"],
+		"exclude": [
+			"buildresults",
+			"deploy",
+			"knex_migrations",
+			"logs",
+			"node_modules",
+			"tests"
+		],
+		"includePattern": ".+\\.js(doc)?$",
+		"excludePattern": "(docs/)"
+	},
+	"opts": {
+		"destination": "./jsdoc_default",
+		"encoding": "utf8",
+		"package": "./package.json",
+		"readme": "./README.md",
+		"recurse": true,
+		"verbose": true
+	},
+	"plugins": ["plugins/markdown", "plugins/summarize"],
+	"templates": {
+		"cleverLinks": true,
+		"disableSort": false,
+		"monospaceLinks": false,
+		"referenceTitle": "Error Serializer",
+
+		"default": {
+			"outputSourceFiles": true,
+			"includeDate": false
+		}
+	},
+	"metadata": {
+		"title": "API Registry by Twyr"
+	}
+}

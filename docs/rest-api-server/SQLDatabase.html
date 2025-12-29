@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+		<title>JSDoc: Class: SQLDatabase</title>
+		<script src="scripts/prettify/prettify.js"> </script>
+		<script src="scripts/prettify/lang-css.js"> </script>
+		<!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+		<link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+		<link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+	</head>
+
+	<body>
+		<div id="main">
+			<h1 class="page-title">Class: SQLDatabase</h1>
+			<section>
+				<header>
+					<h2><span class="attribs"><span class="type-signature"></span></span>SQLDatabase<span class="signature">(location<span class="signature-attributes">opt</span>, iocContainer<span class="signature-attributes">opt</span>, configuration<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h2>
+					<div class="class-description">
+						<p>The SQLDatabase Repository Class.</p>
+					</div>
+				</header>
+				<article>
+					<div class="container-overview">
+						<h2>Constructor</h2>
+						<h4 class="name" id="SQLDatabase"><span class="type-signature"></span>new SQLDatabase<span class="signature">(location<span class="signature-attributes">opt</span>, iocContainer<span class="signature-attributes">opt</span>, configuration<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+						<h5>Parameters:</h5>
+						<table class="params">
+							<thead>
+								<tr>
+									<th>Name</th>
+									<th>Type</th>
+									<th>Attributes</th>
+									<th class="last">Description</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td class="name"><code>location</code></td>
+									<td class="type">
+										<span class="param-type">string</span>
+									</td>
+									<td class="attributes">
+										&lt;optional><br>
+									</td>
+									<td class="description last">
+										<p>__dirname for this file in CJS, basically</p>
+									</td>
+								</tr>
+								<tr>
+									<td class="name"><code>iocContainer</code></td>
+									<td class="type">
+										<span class="param-type">object</span>
+									</td>
+									<td class="attributes">
+										&lt;optional><br>
+									</td>
+									<td class="description last">
+										<p>IoC module providing DI repositories</p>
+									</td>
+								</tr>
+								<tr>
+									<td class="name"><code>configuration</code></td>
+									<td class="type">
+										<span class="param-type">object</span>
+									</td>
+									<td class="attributes">
+										&lt;optional><br>
+									</td>
+									<td class="description last">
+										<p>requested repository configuration</p>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+						<dl class="details">
+							<dt class="tag-source">Source:</dt>
+							<dd class="tag-source">
+								<ul class="dummy">
+									<li>
+										<a href="repositories_runtime_sql_database_index.js.html">repositories/runtime/sql_database/index.js</a>, <a href="repositories_runtime_sql_database_index.js.html#line25">line 25</a>
+									</li>
+								</ul>
+							</dd>
+						</dl>
+					</div>
+					<h3 class="subsection-title">Extends</h3>
+					<ul>
+						<li>EVASBaseRepository</li>
+					</ul>
+					<h3 class="subsection-title">Methods</h3>
+					<h4 class="name" id="load"><span class="type-signature">(async) </span>load<span class="signature">()</span><span class="type-signature"> &rarr; {null}</span></h4>
+					<p class="summary">
+					<p>To be overridden by artifact implementations - for implementing custom
+						start logic</p>.</p>
+					<div class="description">
+						<p>To be overridden by artifact implementations - for implementing custom
+							start logic</p>
+					</div>
+					<dl class="details">
+						<dt class="tag-source">Source:</dt>
+						<dd class="tag-source">
+							<ul class="dummy">
+								<li>
+									<a href="repositories_runtime_sql_database_index.js.html">repositories/runtime/sql_database/index.js</a>, <a href="repositories_runtime_sql_database_index.js.html#line44">line 44</a>
+								</li>
+							</ul>
+						</dd>
+					</dl>
+					<h5>Returns:</h5>
+					<div class="param-desc">
+						<ul>
+							<li>Nothing</li>
+						</ul>
+					</div>
+					<dl>
+						<dt>
+							Type
+						</dt>
+						<dd>
+							<span class="param-type">null</span>
+						</dd>
+					</dl>
+					<h4 class="name" id="unload"><span class="type-signature">(async) </span>unload<span class="signature">()</span><span class="type-signature"> &rarr; {null}</span></h4>
+					<p class="summary">
+					<p>To be overridden by artifact implementations - for implementing custom
+						stop logic</p>.</p>
+					<div class="description">
+						<p>To be overridden by artifact implementations - for implementing custom
+							stop logic</p>
+					</div>
+					<dl class="details">
+						<dt class="tag-source">Source:</dt>
+						<dd class="tag-source">
+							<ul class="dummy">
+								<li>
+									<a href="repositories_runtime_sql_database_index.js.html">repositories/runtime/sql_database/index.js</a>, <a href="repositories_runtime_sql_database_index.js.html#line102">line 102</a>
+								</li>
+							</ul>
+						</dd>
+					</dl>
+					<h5>Returns:</h5>
+					<div class="param-desc">
+						<ul>
+							<li>Nothing</li>
+						</ul>
+					</div>
+					<dl>
+						<dt>
+							Type
+						</dt>
+						<dd>
+							<span class="param-type">null</span>
+						</dd>
+					</dl>
+				</article>
+			</section>
+		</div>
+		<nav>
+			<h2><a href="index.html">Home</a></h2>
+			<h3>Classes</h3>
+			<ul>
+				<li><a href="AdminDomain.html">AdminDomain</a></li>
+				<li><a href="ApplicationServer.html">ApplicationServer</a></li>
+				<li><a href="ApplicationServerFactory.html">ApplicationServerFactory</a></li>
+				<li><a href="Audit.html">Audit</a></li>
+				<li><a href="Auth.html">Auth</a></li>
+				<li><a href="Basics.html">Basics</a></li>
+				<li><a href="BoundedContextFactory.html">BoundedContextFactory</a></li>
+				<li><a href="Cache.html">Cache</a></li>
+				<li><a href="Configuration.html">Configuration</a></li>
+				<li><a href="Contact.html">Contact</a></li>
+				<li><a href="DomainFactory.html">DomainFactory</a></li>
+				<li><a href="IngressSurfaceFactory.html">IngressSurfaceFactory</a></li>
+				<li><a href="Logger.html">Logger</a></li>
+				<li><a href="Main.html">Main</a></li>
+				<li><a href="MiddlewareFactory.html">MiddlewareFactory</a></li>
+				<li><a href="ModelFactory.html">ModelFactory</a></li>
+				<li><a href="MongoDB.html">MongoDB</a></li>
+				<li><a href="Notification.html">Notification</a></li>
+				<li><a href="Profile.html">Profile</a></li>
+				<li><a href="Renderer.html">Renderer</a></li>
+				<li><a href="RepositoryFactory.html">RepositoryFactory</a></li>
+				<li><a href="RestApi.html">RestApi</a></li>
+				<li><a href="Roles.html">Roles</a></li>
+				<li><a href="SQLDatabase.html">SQLDatabase</a></li>
+				<li><a href="Session.html">Session</a></li>
+				<li><a href="SessionManager.html">SessionManager</a></li>
+				<li><a href="SurfaceFactory.html">SurfaceFactory</a></li>
+				<li><a href="Tenant.html">Tenant</a></li>
+				<li><a href="UserDomain.html">UserDomain</a></li>
+			</ul>
+			<h3>Global</h3>
+			<ul>
+				<li><a href="global.html#localStrategy">localStrategy</a></li>
+				<li><a href="global.html#serializeDeserialize">serializeDeserialize</a></li>
+				<li><a href="global.html#userSessionCache">userSessionCache</a></li>
+			</ul>
+		</nav>
+		<br class="clear">
+		<footer>
+			Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a>
+		</footer>
+		<script>
+			prettyPrint();
+
+		</script>
+		<script src="scripts/linenumber.js"> </script>
+	</body>
+
+</html>

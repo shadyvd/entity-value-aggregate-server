@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+		<title>JSDoc: Source: repositories/runtime/audit/audit-trail-model.js</title>
+		<script src="scripts/prettify/prettify.js"> </script>
+		<script src="scripts/prettify/lang-css.js"> </script>
+		<!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+		<link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+		<link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+	</head>
+
+	<body>
+		<div id="main">
+			<h1 class="page-title">Source: repositories/runtime/audit/audit-trail-model.js</h1>
+			<section>
+				<article>
+					<pre class="prettyprint source linenums"><code>/**
+ * Imports for this file
+ * @ignore
+ */
+
+/**
+ * Magic constants
+ * @ignore
+ */
+const COLLECTION_NAME = 'audit_trail';
+const MODEL_NAME = 'audit_trail_model';
+
+/**
+ * @class ModelFactory
+ *
+ * @classdesc The UserAuditTrail MongoDB/Mongoose Model Class Factory.
+ */
+export default class ModelFactory {
+	// #region Constructor
+	// eslint-disable-next-line jsdoc/require-jsdoc
+	constructor() {
+		// Intentionally left blank
+	}
+	// #endregion
+
+	// #region Lifecycle API
+	/**
+	 * @memberof ModelFactory
+	 * @async
+	 * @static
+	 * @function
+	 * @name createInstance
+	 *
+	 * @param {object} [connectionInstance] - Mongoose Connection Instance
+	 *
+	 * @returns {Mongoose.Model} - The UserAuditTrail Model instance.
+	 *
+	 */
+	static async createInstance(connectionInstance) {
+		// eslint-disable-next-line security/detect-object-injection
+		if (connectionInstance?.models?.[MODEL_NAME]) {
+			// eslint-disable-next-line security/detect-object-injection
+			return connectionInstance?.models?.[MODEL_NAME];
+		}
+
+		let mongoose = await import('mongoose');
+		mongoose = mongoose?.['default'];
+
+		const UserAuditTrailSchema = mongoose?.Schema?.(
+			{
+				id: mongoose?.Schema?.Types?.String,
+				start_time: mongoose?.Schema?.Types?.Date,
+				end_time: mongoose?.Schema?.Types?.Date,
+				duration_in_ms: mongoose?.Schema?.Types?.Number,
+
+				user: {
+					id: mongoose?.Schema?.Types?.String,
+					name: mongoose?.Schema?.Types?.String
+				},
+
+				tenant: {
+					id: mongoose?.Schema?.Types?.String,
+					name: mongoose?.Schema?.Types?.String,
+					sub_domain: mongoose?.Schema?.Types?.String
+				},
+
+				'request-meta': {
+					headers: mongoose?.Schema?.Types?.Mixed,
+					method: mongoose?.Schema?.Types?.String,
+					url: mongoose?.Schema?.Types?.String,
+					ip: mongoose?.Schema?.Types?.String
+				},
+
+				'response-meta': {
+					headers: mongoose?.Schema?.Types?.Mixed,
+					status: {
+						code: mongoose?.Schema?.Types?.String,
+						message: mongoose?.Schema?.Types?.String
+					}
+				},
+
+				data: mongoose?.Schema?.Types?.Mixed,
+				error: mongoose?.Schema?.Types?.Mixed
+			},
+			{
+				collection: COLLECTION_NAME,
+				timestamps: true,
+				timeseries: {
+					timeField: 'start_time',
+					metaField: 'request_meta'
+				}
+			}
+		);
+
+		const UserAuditTrailModel = connectionInstance?.model?.(
+			MODEL_NAME,
+			UserAuditTrailSchema,
+			COLLECTION_NAME
+		);
+
+		return UserAuditTrailModel;
+	}
+	// #endregion
+}
+</code></pre>
+				</article>
+			</section>
+		</div>
+		<nav>
+			<h2><a href="index.html">Home</a></h2>
+			<h3>Classes</h3>
+			<ul>
+				<li><a href="AdminDomain.html">AdminDomain</a></li>
+				<li><a href="ApplicationServer.html">ApplicationServer</a></li>
+				<li><a href="ApplicationServerFactory.html">ApplicationServerFactory</a></li>
+				<li><a href="Audit.html">Audit</a></li>
+				<li><a href="Auth.html">Auth</a></li>
+				<li><a href="Basics.html">Basics</a></li>
+				<li><a href="BoundedContextFactory.html">BoundedContextFactory</a></li>
+				<li><a href="Cache.html">Cache</a></li>
+				<li><a href="Configuration.html">Configuration</a></li>
+				<li><a href="Contact.html">Contact</a></li>
+				<li><a href="DomainFactory.html">DomainFactory</a></li>
+				<li><a href="IngressSurfaceFactory.html">IngressSurfaceFactory</a></li>
+				<li><a href="Logger.html">Logger</a></li>
+				<li><a href="Main.html">Main</a></li>
+				<li><a href="MiddlewareFactory.html">MiddlewareFactory</a></li>
+				<li><a href="ModelFactory.html">ModelFactory</a></li>
+				<li><a href="MongoDB.html">MongoDB</a></li>
+				<li><a href="Notification.html">Notification</a></li>
+				<li><a href="Profile.html">Profile</a></li>
+				<li><a href="Renderer.html">Renderer</a></li>
+				<li><a href="RepositoryFactory.html">RepositoryFactory</a></li>
+				<li><a href="RestApi.html">RestApi</a></li>
+				<li><a href="Roles.html">Roles</a></li>
+				<li><a href="SQLDatabase.html">SQLDatabase</a></li>
+				<li><a href="Session.html">Session</a></li>
+				<li><a href="SessionManager.html">SessionManager</a></li>
+				<li><a href="SurfaceFactory.html">SurfaceFactory</a></li>
+				<li><a href="Tenant.html">Tenant</a></li>
+				<li><a href="UserDomain.html">UserDomain</a></li>
+			</ul>
+			<h3>Global</h3>
+			<ul>
+				<li><a href="global.html#localStrategy">localStrategy</a></li>
+				<li><a href="global.html#serializeDeserialize">serializeDeserialize</a></li>
+				<li><a href="global.html#userSessionCache">userSessionCache</a></li>
+			</ul>
+		</nav>
+		<br class="clear">
+		<footer>
+			Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a>
+		</footer>
+		<script>
+			prettyPrint();
+
+		</script>
+		<script src="scripts/linenumber.js"> </script>
+	</body>
+
+</html>

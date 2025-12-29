@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+		<title>JSDoc: Source: domains/portal/bounded_contexts/session_manager/middlewares/session.js</title>
+		<script src="scripts/prettify/prettify.js"> </script>
+		<script src="scripts/prettify/lang-css.js"> </script>
+		<!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+		<link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+		<link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+	</head>
+
+	<body>
+		<div id="main">
+			<h1 class="page-title">Source: domains/portal/bounded_contexts/session_manager/middlewares/session.js</h1>
+			<section>
+				<article>
+					<pre class="prettyprint source linenums"><code>/**
+ * Imports for this file
+ * @ignore
+ */
+import { EVASBaseFactory } from '@twyr/framework-classes';
+import { createErrorForPropagation } from '@twyr/error-serializer';
+import { BaseMiddleware } from 'baseclass:middleware';
+
+/**
+ * @class Session
+ * @extends BaseMiddleware
+ *
+ * @param {string} [location] - __dirname for this file in CJS, basically
+ * @param {object} [domainInterface] - Domain functionality exposed to sub-artifacts
+ *
+ * @classdesc The Middleware to handle login / logout / register
+ */
+export class Session extends BaseMiddleware {
+	// #region Constructor
+	// eslint-disable-next-line jsdoc/require-jsdoc
+	constructor(location, domainInterface) {
+		super(location, domainInterface);
+	}
+	// #endregion
+
+	// #region Protected Methods, to be overridden by derived classes
+	/**
+	 * @memberof Session
+	 * @async
+	 * @instance
+	 * @override
+	 * @function
+	 * @name _registerApi
+	 *
+	 * @returns {null} - Nothing
+	 *
+	 * @description
+	 * Adds the API to the apiRegistry in the domainInterface
+	 *
+	 */
+	async _registerApi() {
+		const errors = [];
+
+		try {
+			const apiRegistry = this?.domainInterface?.apiRegistry;
+			let registerResolutions = [];
+
+			const baseApis = await super._registerApi?.();
+			for (const baseApi of baseApis ?? []) {
+				registerResolutions?.push?.(
+					apiRegistry?.register?.(baseApi?.pattern, baseApi?.handler)
+				);
+			}
+
+			registerResolutions?.push?.(
+				apiRegistry?.register?.('LOGIN', this.#login?.bind?.(this))
+			);
+			registerResolutions?.push?.(
+				apiRegistry?.register?.('LOGOUT', this.#logout?.bind?.(this))
+			);
+
+			registerResolutions =
+				await Promise?.allSettled?.(registerResolutions);
+			for (const registerResolution of registerResolutions) {
+				if (registerResolution?.status === 'fulfilled') continue;
+				errors?.push?.(registerResolution?.reason);
+			}
+		} catch (error) {
+			errors?.push?.(error);
+		}
+
+		if (!errors?.length) return;
+
+		const propagatedError = createErrorForPropagation?.(
+			`${this?.name}::_registerApi error`,
+			errors
+		);
+
+		if (propagatedError) throw propagatedError;
+	}
+
+	/**
+	 * @memberof Session
+	 * @async
+	 * @instance
+	 * @override
+	 * @function
+	 * @name _unregisterApi
+	 *
+	 * @returns {null} - Nothing
+	 *
+	 * @description
+	 * Removes the API from the apiRegistry in the domainInterface
+	 *
+	 */
+	async _unregisterApi() {
+		const errors = [];
+
+		try {
+			const apiRegistry = this?.domainInterface?.apiRegistry;
+			let unregisterResolutions = [];
+
+			unregisterResolutions?.push?.(
+				apiRegistry?.unregister?.('LOGIN', this.#login?.bind?.(this))
+			);
+			unregisterResolutions?.push?.(
+				apiRegistry?.unregister?.('LOGOUT', this.#logout?.bind?.(this))
+			);
+
+			unregisterResolutions = await Promise?.allSettled?.(
+				unregisterResolutions
+			);
+			for (const unregisterResolution of unregisterResolutions) {
+				if (unregisterResolution?.status === 'fulfilled') continue;
+				errors?.push?.(unregisterResolution?.reason);
+			}
+
+			await super._unregisterApi?.();
+		} catch (error) {
+			errors?.push?.(error);
+		}
+
+		if (!errors?.length) return;
+
+		const propagatedError = createErrorForPropagation?.(
+			`${this?.name}::_unregisterApi error`,
+			errors
+		);
+
+		if (propagatedError) throw propagatedError;
+	}
+	// #endregion
+
+	// #region Handlers
+	async #login({ tenant, user }) {
+		// THIS IS WHERE THE POST-LOGIN PROCESSING, IF ANY REQUIRED
+		// GETS EXECUTED
+
+		return {
+			status: 200,
+			body: `Logged in ${user?.['first_name']} ${user?.['last_name']} for ${tenant?.name} tenant`
+		};
+	}
+
+	async #logout(ctxt) {
+		const cache =
+			await this?.domainInterface?.iocContainer?.resolve?.('Cache');
+
+		const userId = ctxt?.state?.user?.id;
+		const tenantId = ctxt?.state?.tenant?.id;
+
+		await ctxt?.logout?.();
+
+		await cache?.del?.(`twyr!restapi!user!${userId}!basics`);
+		await cache?.del?.(
+			`twyr!restapi!user!${userId}!${tenantId}!permissions`
+		);
+
+		return { status: 200, body: 'Logged out' };
+	}
+	// #endregion
+}
+
+/**
+ * @class MiddlewareFactory
+ * @extends EVASBaseFactory
+ *
+ * @classdesc The Session Manager Module Session Middleware Class Factory.
+ */
+export default class MiddlewareFactory extends EVASBaseFactory {
+	// #region Constructor
+	// eslint-disable-next-line jsdoc/require-jsdoc
+	constructor() {
+		super();
+	}
+	// #endregion
+
+	// #region Lifecycle API
+	/**
+	 * @memberof MiddlewareFactory
+	 * @async
+	 * @static
+	 * @override
+	 * @function
+	 * @name createInstance
+	 *
+	 * @param {object} [domainInterface] - Domain functionality exposed to sub-artifacts
+	 *
+	 * @returns {Session} - The Session middleware instance.
+	 *
+	 */
+	static async createInstances(domainInterface) {
+		if (!MiddlewareFactory.#sessionInstance) {
+			const sessionInstance = new Session(
+				MiddlewareFactory['$disk_unc'],
+				domainInterface
+			);
+
+			await sessionInstance?.load?.();
+			MiddlewareFactory.#sessionInstance = sessionInstance;
+		}
+
+		return MiddlewareFactory.#sessionInstance;
+	}
+
+	/**
+	 * @memberof MiddlewareFactory
+	 * @async
+	 * @static
+	 * @override
+	 * @function
+	 * @name destroyInstances
+	 *
+	 * @returns {undefined} - Nothing.
+	 *
+	 * @description Clears the Session instance
+	 */
+	static async destroyInstances() {
+		await MiddlewareFactory.#sessionInstance?.unload?.();
+		MiddlewareFactory.#sessionInstance = undefined;
+
+		return;
+	}
+	// #endregion
+
+	// #region Getters
+	/**
+	 * @memberof MiddlewareFactory
+	 * @async
+	 * @static
+	 * @override
+	 * @function
+	 * @name MiddlewareName
+	 *
+	 * @returns {string} - Name of this middleware.
+	 *
+	 * @description
+	 * Returns the name of this middleware - Session
+	 */
+	static get MiddlewareName() {
+		return 'Session';
+	}
+	// #endregion
+
+	// #region Private Static Members
+	static #sessionInstance = undefined;
+	// #endregion
+}
+</code></pre>
+				</article>
+			</section>
+		</div>
+		<nav>
+			<h2><a href="index.html">Home</a></h2>
+			<h3>Classes</h3>
+			<ul>
+				<li><a href="AdminDomain.html">AdminDomain</a></li>
+				<li><a href="ApplicationServer.html">ApplicationServer</a></li>
+				<li><a href="ApplicationServerFactory.html">ApplicationServerFactory</a></li>
+				<li><a href="Audit.html">Audit</a></li>
+				<li><a href="Auth.html">Auth</a></li>
+				<li><a href="Basics.html">Basics</a></li>
+				<li><a href="BoundedContextFactory.html">BoundedContextFactory</a></li>
+				<li><a href="Cache.html">Cache</a></li>
+				<li><a href="Configuration.html">Configuration</a></li>
+				<li><a href="Contact.html">Contact</a></li>
+				<li><a href="DomainFactory.html">DomainFactory</a></li>
+				<li><a href="IngressSurfaceFactory.html">IngressSurfaceFactory</a></li>
+				<li><a href="Logger.html">Logger</a></li>
+				<li><a href="Main.html">Main</a></li>
+				<li><a href="MiddlewareFactory.html">MiddlewareFactory</a></li>
+				<li><a href="ModelFactory.html">ModelFactory</a></li>
+				<li><a href="MongoDB.html">MongoDB</a></li>
+				<li><a href="Notification.html">Notification</a></li>
+				<li><a href="Profile.html">Profile</a></li>
+				<li><a href="Renderer.html">Renderer</a></li>
+				<li><a href="RepositoryFactory.html">RepositoryFactory</a></li>
+				<li><a href="RestApi.html">RestApi</a></li>
+				<li><a href="Roles.html">Roles</a></li>
+				<li><a href="SQLDatabase.html">SQLDatabase</a></li>
+				<li><a href="Session.html">Session</a></li>
+				<li><a href="SessionManager.html">SessionManager</a></li>
+				<li><a href="SurfaceFactory.html">SurfaceFactory</a></li>
+				<li><a href="Tenant.html">Tenant</a></li>
+				<li><a href="UserDomain.html">UserDomain</a></li>
+			</ul>
+			<h3>Global</h3>
+			<ul>
+				<li><a href="global.html#localStrategy">localStrategy</a></li>
+				<li><a href="global.html#serializeDeserialize">serializeDeserialize</a></li>
+				<li><a href="global.html#userSessionCache">userSessionCache</a></li>
+			</ul>
+		</nav>
+		<br class="clear">
+		<footer>
+			Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a>
+		</footer>
+		<script>
+			prettyPrint();
+
+		</script>
+		<script src="scripts/linenumber.js"> </script>
+	</body>
+
+</html>
