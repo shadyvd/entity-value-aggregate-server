@@ -1,6 +1,6 @@
 The [MIT +no-false-attribs (MITNFA) License](https://spdx.org/licenses/MITNFA.html)
 
-Copyright (c) 2025 Twyr
+Copyright &copy; 2025 Twyr
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in the
