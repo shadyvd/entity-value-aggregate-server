@@ -1,10 +1,10 @@
 /**
  * @license MITNFA
- * @version 0.1.0
+ * @version 0.2.0
  * @file Main Entry point for the Entity Value Aggregate Server Framework Classes package by Twyr
- * @author {@link mailto:vish.desai@auramwellness.com|Vish Desai}
+ * @author {@link mailto:shadyvd@hotmail.com|Vish Desai}
  * @name index.js
- * @copyright &copy; {@link https://auramwellness.com|Twyr} 2025
+ * @copyright &copy; {@link https://twyr.github.io|Twyr} 2025
  */
 
 /**
@@ -25,6 +25,7 @@ export { EVASBaseRepository } from './lib/base_classes/evas-base-repository.js';
 export { EVASBaseBoundedContext } from './lib/base_classes/evas-base-bounded-context.js';
 export { EVASBaseMiddleware } from './lib/base_classes/evas-base-middleware.js';
 export { EVASBaseSurface } from './lib/base_classes/evas-base-surface.js';
+export { EVASBaseEventHandler } from './lib/base_classes/evas-base-event-handler.js';
 
 /**
  * Exporting the factories
