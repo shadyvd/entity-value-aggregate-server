@@ -107,6 +107,23 @@
           "valid": true
         },
         {
+          "module": "./lib/base_classes/evas-base-event-handler.js",
+          "moduleSystem": "es6",
+          "dynamic": false,
+          "exoticallyRequired": false,
+          "dependencyTypes": [
+            "local",
+            "export"
+          ],
+          "resolved": "../framework-classes/lib/base_classes/evas-base-event-handler.js",
+          "coreModule": false,
+          "followable": true,
+          "couldNotResolve": false,
+          "matchesDoNotFollow": false,
+          "circular": false,
+          "valid": true
+        },
+        {
           "module": "./lib/base_classes/evas-base-ingress-surface.js",
           "moduleSystem": "es6",
           "dynamic": false,
@@ -291,6 +308,7 @@
         "../framework-classes/index.js",
         "../framework-classes/lib/base_classes/evas-base-bounded-context.js",
         "../framework-classes/lib/base_classes/evas-base-domain.js",
+        "../framework-classes/lib/base_classes/evas-base-event-handler.js",
         "../framework-classes/lib/base_classes/evas-base-ingress-surface.js",
         "../framework-classes/lib/base_classes/evas-base-middleware.js",
         "../framework-classes/lib/base_classes/evas-base-repository.js",
@@ -699,6 +717,33 @@
       "valid": true
     },
     {
+      "source": "../framework-classes/lib/base_classes/evas-base-event-handler.js",
+      "dependencies": [
+        {
+          "module": "./evas-base-artifact.js",
+          "moduleSystem": "es6",
+          "dynamic": false,
+          "exoticallyRequired": false,
+          "dependencyTypes": [
+            "local",
+            "import"
+          ],
+          "resolved": "../framework-classes/lib/base_classes/evas-base-artifact.js",
+          "coreModule": false,
+          "followable": true,
+          "couldNotResolve": false,
+          "matchesDoNotFollow": false,
+          "circular": false,
+          "valid": true
+        }
+      ],
+      "dependents": [
+        "../framework-classes/index.js"
+      ],
+      "orphan": false,
+      "valid": true
+    },
+    {
       "source": "../framework-classes/lib/base_classes/evas-base-ingress-surface.js",
       "dependencies": [
         {
@@ -962,8 +1007,8 @@
     "warn": 3,
     "info": 0,
     "ignore": 0,
-    "totalCruised": 22,
-    "totalDependenciesCruised": 38,
+    "totalCruised": 23,
+    "totalDependenciesCruised": 40,
     "optionsUsed": {
       "baseDir": "/home/vish/Work/twyr/entity-value-aggregate-server/packages/api-registry",
       "combinedDependencies": false,
