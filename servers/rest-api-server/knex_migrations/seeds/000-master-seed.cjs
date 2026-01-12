@@ -1,76 +1,5 @@
 'use strict';
 
-const insertModuleTypesMasterData = async function insertModuleTypesMasterData(
-	knex
-) {
-	// Step 0: If the data is already in there, skip...
-	const artifactCount = await knex?.raw?.(
-		`SELECT count(id) AS masterdata_count FROM artifact_type_master`
-	);
-	if (Number?.(artifactCount?.rows?.[0]['masterdata_count'])) return;
-
-	// Step 1: Insert the data...
-	await knex?.('artifact_type_master')?.insert?.({
-		name: 'server',
-		display_name: 'Server',
-		description: 'Top-Level programs that host other entities'
-	});
-
-	await knex?.('artifact_type_master')?.insert?.({
-		name: 'domain',
-		display_name: 'Domain',
-		description: 'A single domain in the Server'
-	});
-
-	await knex?.('artifact_type_master')?.insert?.({
-		name: 'feature',
-		display_name: 'Module',
-		description: 'A single feature of either the Server or the Domain'
-	});
-
-	await knex?.('artifact_type_master')?.insert?.({
-		name: 'repository',
-		display_name: 'Repository',
-		description:
-			'An entity that wraps an external third-party API - for either a Server or a Domain'
-	});
-
-	await knex?.('artifact_type_master')?.insert?.({
-		name: 'surface',
-		display_name: 'Surface',
-		description: 'An entity that exposes API for a Module'
-	});
-
-	await knex?.('artifact_type_master')?.insert?.({
-		name: 'middleware',
-		display_name: 'Middleware',
-		description: 'An entity that contains the business logic for a Module'
-	});
-};
-
-const insertModuleAvailabilityModeMasterData =
-	async function insertModuleAvailabilityModeMasterData(knex) {
-		// Step 0: If the data is already in there, skip...
-		const artifactCount = await knex?.raw?.(
-			`SELECT count(id) AS masterdata_count FROM artifact_availability_mode_master`
-		);
-		if (Number?.(artifactCount?.rows?.[0]['masterdata_count'])) return;
-
-		// Step 1: Insert the data...
-		await knex?.('artifact_availability_mode_master')?.insert?.({
-			name: 'admin',
-			display_name: 'Administrator',
-			description:
-				'Modules that can be mapped only to the Administrator Tenant'
-		});
-
-		await knex?.('artifact_availability_mode_master')?.insert?.({
-			name: 'default',
-			display_name: 'Default',
-			description: 'Modules that can be mapped to any Tenant'
-		});
-	};
-
 const insertContactTypeMasterData = async function insertContactTypeMasterData(
 	knex
 ) {
@@ -112,59 +41,55 @@ const insertContactTypeMasterData = async function insertContactTypeMasterData(
 	});
 };
 
-const insertTenantStatusMasterData =
-	async function insertTenantStatusMasterData(knex) {
-		// Step 0: If the data is already in there, skip...
-		const statusCount = await knex?.raw?.(
-			`SELECT count(id) AS status_count FROM tenant_status_master`
-		);
-		if (Number?.(statusCount?.rows?.[0]['status_count'])) return;
+const insertGenderMasterData = async function insertGenderMasterData(knex) {
+	// Step 0: If the data is already in there, skip...
+	const artifactCount = await knex?.raw?.(
+		`SELECT count(id) AS masterdata_count FROM gender_master`
+	);
+	if (Number?.(artifactCount?.rows?.[0]['masterdata_count'])) return;
 
-		// Step 1: Insert the data...
-		await knex?.('tenant_status_master')?.insert?.({
-			name: 'trial',
-			display_name: 'Trial',
-			description:
-				'Free Account - single line, maximum 10 machines, limited period. No aggregation.'
-		});
+	// Step 1: Insert the data...
+	await knex?.('gender_master')?.insert?.({
+		name: 'male',
+		display_name: 'Male',
+		description: 'Male gender'
+	});
 
-		await knex?.('tenant_status_master')?.insert?.({
-			name: 'standard',
-			display_name: 'Standard',
-			description:
-				'Standard Account - unlimited lines and machines, paid. No aggregation.'
-		});
+	await knex?.('gender_master')?.insert?.({
+		name: 'female',
+		display_name: 'Female',
+		description: 'Female gender'
+	});
 
-		await knex?.('tenant_status_master')?.insert?.({
-			name: 'enterprise',
-			display_name: 'Enterprise',
-			description:
-				'Enterprise Account - all features enabled, including aggregation.'
-		});
-	};
+	await knex?.('gender_master')?.insert?.({
+		name: 'other',
+		display_name: 'Other',
+		description: 'Other gender'
+	});
+};
 
-const insertTenantUserStatusMasterData =
-	async function insertTenantUserStatusMasterData(knex) {
+const insertConnectionStatusMasterData =
+	async function insertConnectionStatusMasterData(knex) {
 		// Step 0: If the data is already in there, skip...
 		const artifactCount = await knex?.raw?.(
-			`SELECT count(id) AS masterdata_count FROM tenant_user_status_master`
+			`SELECT count(id) AS masterdata_count FROM connection_status_master`
 		);
 		if (Number?.(artifactCount?.rows?.[0]['masterdata_count'])) return;
 
 		// Step 1: Insert the data...
-		await knex?.('tenant_user_status_master')?.insert?.({
+		await knex?.('connection_status_master')?.insert?.({
 			name: 'waiting',
 			display_name: 'Waiting',
 			description: 'Connection approval pending'
 		});
 
-		await knex?.('tenant_user_status_master')?.insert?.({
+		await knex?.('connection_status_master')?.insert?.({
 			name: 'authorized',
 			display_name: 'Authorized',
 			description: 'Connection approved'
 		});
 
-		await knex?.('tenant_user_status_master')?.insert?.({
+		await knex?.('connection_status_master')?.insert?.({
 			name: 'disabled',
 			display_name: 'Disabled',
 			description: 'Connection removed'
@@ -172,18 +97,12 @@ const insertTenantUserStatusMasterData =
 	};
 
 exports.seed = async function (knex) {
-	// Step 1: Insert master data into artifact types master
-	await insertModuleTypesMasterData(knex);
-
-	// Step 2: Insert master data into artifact availability modes master
-	await insertModuleAvailabilityModeMasterData(knex);
-
-	// Step 3: Insert master data into contact types master
+	// Step 1: Insert master data into contact types master
 	await insertContactTypeMasterData(knex);
 
-	// Step 4: Insert master data into tenant status master
-	await insertTenantStatusMasterData(knex);
+	// Step 2: Insert master data into genders master
+	await insertGenderMasterData(knex);
 
-	// Step 5: Insert master data into tenant user connection status master
-	await insertTenantUserStatusMasterData(knex);
+	// Step 3: Insert master data into connection status master
+	await insertConnectionStatusMasterData(knex);
 };

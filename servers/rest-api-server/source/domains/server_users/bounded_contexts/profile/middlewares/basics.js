@@ -1,0 +1,480 @@
+/**
+ * Imports for this file
+ * @ignore
+ */
+import { DateTime } from 'luxon';
+
+import { EVASBaseFactory } from '@twyr/framework-classes';
+import { createErrorForPropagation } from '@twyr/error-serializer';
+import { ServerUserBaseMiddleware } from 'baseclass:middleware';
+
+/**
+ * @class Basics
+ * @extends ServerUserBaseMiddleware
+ *
+ * @param {string} [location] - __dirname for this file in CJS, basically
+ * @param {object} [domainInterface] - Domain functionality exposed to sub-artifacts
+ *
+ * @classdesc The Middleware to handle login / logout / register
+ */
+export class Basics extends ServerUserBaseMiddleware {
+	// #region Constructor
+	// eslint-disable-next-line jsdoc/require-jsdoc
+	constructor(location, domainInterface) {
+		super(location, domainInterface);
+	}
+	// #endregion
+
+	// #region Protected Methods, to be overridden by derived classes
+	/**
+	 * @memberof Basics
+	 * @async
+	 * @instance
+	 * @override
+	 * @function
+	 * @name _registerApi
+	 *
+	 * @returns {null} - The array of API to be registered
+	 *
+	 * @description
+	 * Adds the API to the apiRegistry in the domainInterface
+	 *
+	 */
+	async _registerApi() {
+		const errors = [];
+
+		try {
+			const apiRegistry = this?.domainInterface?.apiRegistry;
+			let registerResolutions = [];
+
+			const baseApis = await super._registerApi?.();
+			for (const baseApi of baseApis ?? []) {
+				registerResolutions?.push?.(
+					apiRegistry?.register?.(baseApi?.pattern, baseApi?.handler)
+				);
+			}
+
+			registerResolutions?.push?.(
+				apiRegistry?.register?.(
+					'CREATE',
+					this.#createBasics?.bind?.(this)
+				)
+			);
+			registerResolutions?.push?.(
+				apiRegistry?.register?.('READ', this.#readBasics?.bind?.(this))
+			);
+			registerResolutions?.push?.(
+				apiRegistry?.register?.(
+					'UPDATE',
+					this.#updateBasics?.bind?.(this)
+				)
+			);
+			registerResolutions?.push?.(
+				apiRegistry?.register?.(
+					'DELETE',
+					this.#deleteBasics?.bind?.(this)
+				)
+			);
+
+			registerResolutions =
+				await Promise?.allSettled?.(registerResolutions);
+			for (const registerResolution of registerResolutions) {
+				if (registerResolution?.status === 'fulfilled') continue;
+				errors?.push?.(registerResolution?.reason);
+			}
+		} catch (error) {
+			errors?.push?.(error);
+		}
+
+		if (!errors?.length) return;
+
+		const propagatedError = createErrorForPropagation?.(
+			`${this?.name}::_registerApi error`,
+			errors
+		);
+
+		if (propagatedError) throw propagatedError;
+	}
+
+	/**
+	 * @memberof Basics
+	 * @async
+	 * @instance
+	 * @override
+	 * @function
+	 * @name _unregisterApi
+	 *
+	 * @returns {null} - Nothing
+	 *
+	 * @description
+	 * Removes the API from the apiRegistry in the domainInterface
+	 *
+	 */
+	async _unregisterApi() {
+		const errors = [];
+
+		try {
+			const apiRegistry = this?.domainInterface?.apiRegistry;
+			let unregisterResolutions = [];
+
+			unregisterResolutions?.push?.(
+				apiRegistry?.unregister?.(
+					'DELETE',
+					this.#deleteBasics?.bind?.(this)
+				)
+			);
+			unregisterResolutions?.push?.(
+				apiRegistry?.unregister?.(
+					'UPDATE',
+					this.#updateBasics?.bind?.(this)
+				)
+			);
+			unregisterResolutions?.push?.(
+				apiRegistry?.unregister?.(
+					'READ',
+					this.#readBasics?.bind?.(this)
+				)
+			);
+			unregisterResolutions?.push?.(
+				apiRegistry?.unregister?.(
+					'CREATE',
+					this.#createBasics?.bind?.(this)
+				)
+			);
+
+			unregisterResolutions = await Promise?.allSettled?.(
+				unregisterResolutions
+			);
+			for (const unregisterResolution of unregisterResolutions) {
+				if (unregisterResolution?.status === 'fulfilled') continue;
+				errors?.push?.(unregisterResolution?.reason);
+			}
+
+			await super._unregisterApi?.();
+		} catch (error) {
+			errors?.push?.(error);
+		}
+
+		if (!errors?.length) return;
+
+		const propagatedError = createErrorForPropagation?.(
+			`${this?.name}::_unregisterApi error`,
+			errors
+		);
+
+		if (propagatedError) throw propagatedError;
+	}
+	// #endregion
+
+	// #region Handlers
+	async #createBasics({ data }) {
+		let ServerUserModel = await this?._getModelsFromDomain?.([
+			{
+				type: 'relational',
+				name: 'server-user'
+			}
+		]);
+
+		// Step 1: De-serialize from JSON API Format
+		const serverUser =
+			await this?.domainInterface?.serializer?.deserializeAsync?.(
+				data?.data?.type,
+				data
+			);
+
+		delete serverUser.id;
+		delete serverUser.created_at;
+		delete serverUser.updated_at;
+
+		// Step 2: Sanity checks
+		const cacheRepository =
+			await this?.domainInterface?.iocContainer?.resolve?.('Cache');
+		const otpNumber = await cacheRepository?.get?.(
+			`server-user-otp-${serverUser?.mobile_no}`
+		);
+
+		if (serverUser?.otp !== otpNumber) {
+			throw new Error(
+				`Profile cannot be created for ${serverUser.first_name} ${serverUser.last_name}. OTP mismatch.`
+			);
+		}
+
+		delete serverUser.otp;
+
+		let existingServerUser = await this?._executeWithBackOff?.(() => {
+			return ServerUserModel?.query?.()
+				?.where?.('mobile_no', '=', serverUser?.mobile_no)
+				?.first?.();
+		});
+
+		if (existingServerUser) {
+			throw new Error(
+				`Profile cannot be created for ${serverUser.first_name} ${serverUser.last_name}. User already exists.`
+			);
+		}
+
+		const currentTime = DateTime?.local?.();
+		const serverUserDob = DateTime?.fromISO?.(serverUser?.date_of_birth);
+
+		const serverUserAge = currentTime?.diff?.(serverUserDob)?.as?.('years');
+		if (serverUserAge < 18) {
+			throw new Error(
+				`${serverUser.first_name} ${serverUser.last_name} is a minor.`
+			);
+		}
+
+		// Step 3: Create the server-user profile basics / contact
+		let createdServerUser = await this?._executeWithBackOff?.(() => {
+			return ServerUserModel?.query?.()?.insertAndFetch?.(serverUser);
+		});
+
+		const dbRepository =
+			await this.domainInterface?.iocContainer?.resolve?.('SQLDatabase');
+
+		let mobileContactTypeId = await this?._executeWithBackOff?.(() => {
+			return dbRepository?.raw?.(
+				`SELECT id FROM contact_type_master WHERE name = 'mobile'`
+			);
+		});
+
+		mobileContactTypeId = mobileContactTypeId?.rows?.shift?.()?.['id'];
+		await this?._executeWithBackOff?.(() => {
+			return dbRepository?.raw?.(
+				`INSERT INTO server_user_contacts (server_user_id, contact_type_id, contact, is_primary, verified) VALUES (?, ?, ?, ?, ?)`,
+				[
+					createdServerUser?.id,
+					mobileContactTypeId,
+					createdServerUser.mobile_no,
+					true,
+					true
+				]
+			);
+		});
+
+		// Step 4: Emit event
+		this?.domainInterface?.eventEmitter?.emit?.('SERVER_USER_CREATED', {
+			userId: createdServerUser?.id
+		});
+
+		// Finally, serialize and return
+		createdServerUser = await this?._executeWithBackOff?.(() => {
+			return ServerUserModel?.query?.()
+				?.findById?.(createdServerUser?.id)
+				?.withGraphFetched?.(
+					'contacts.[contactType], gender, locales.[locale]'
+				);
+		});
+
+		createdServerUser =
+			await this?.domainInterface?.serializer?.serializeAsync?.(
+				'server_user',
+				createdServerUser
+			);
+
+		return {
+			status: 201,
+			body: createdServerUser
+		};
+	}
+
+	async #readBasics({ user, relationships }) {
+		let ServerUserModel = await this?._getModelsFromDomain?.([
+			{
+				type: 'relational',
+				name: 'server-user'
+			}
+		]);
+
+		// Step 1: Get requested relationships into ObjectionJS format
+		let relationshipSet = new Set(['contacts.[contactType]', 'gender']);
+		relationships?.split?.(',')?.forEach?.((relationship) => {
+			relationshipSet?.add?.(relationship?.trim());
+		});
+
+		relationshipSet = JSON.stringify?.([...relationshipSet]);
+		relationshipSet = relationshipSet?.replace?.(/"/g, '');
+		relationshipSet = relationshipSet?.replace?.(
+			/locales/g,
+			'locales.[locale]'
+		);
+
+		// Step 2: Do the dew!
+		let serverUserBasics = await this?._executeWithBackOff?.(() => {
+			return ServerUserModel?.query?.()
+				?.where?.('id', '=', user?.id)
+				?.withGraphFetched?.(relationshipSet);
+		});
+
+		// Finally, serialize to JSON API Format and return
+		serverUserBasics =
+			await this?.domainInterface?.serializer?.serializeAsync?.(
+				'server_user',
+				serverUserBasics
+			);
+
+		return {
+			status: 200,
+			body: serverUserBasics
+		};
+	}
+
+	async #updateBasics({ user, data }) {
+		let ServerUserModel = await this?._getModelsFromDomain?.([
+			{
+				type: 'relational',
+				name: 'server-user'
+			}
+		]);
+
+		// Step 1: De-serialize from JSON API Format
+		const dataToBeUpdated =
+			await this?.domainInterface?.serializer?.deserializeAsync?.(
+				data?.data?.type,
+				data
+			);
+
+		dataToBeUpdated.id = user?.id;
+		delete dataToBeUpdated.created_at;
+		delete dataToBeUpdated.updated_at;
+
+		// Step 2: Do the dew!
+		let updatedServerUser = await this?._executeWithBackOff?.(() => {
+			return ServerUserModel?.query?.()
+				?.patchAndFetchById?.(dataToBeUpdated?.id, dataToBeUpdated)
+				?.withGraphFetched?.(
+					'[contacts.[contactType], gender, locales.[locale]]'
+				);
+		});
+
+		// Step 3: Emit event
+		this?.domainInterface?.eventEmitter?.emit?.('SERVER_USER_UPDATED', {
+			userId: updatedServerUser?.id
+		});
+
+		// Step 4: Serialize to JSON API Format
+		updatedServerUser =
+			await this?.domainInterface?.serializer?.serializeAsync?.(
+				'server_user',
+				updatedServerUser
+			);
+
+		// Finally, return relevant data
+		return {
+			status: 200,
+			body: updatedServerUser
+		};
+	}
+
+	async #deleteBasics({ userId }) {
+		let ServerUserModel = await this?._getModelsFromDomain?.([
+			{
+				type: 'relational',
+				name: 'server-user'
+			}
+		]);
+
+		await this?._executeWithBackOff?.(() => {
+			return ServerUserModel?.query?.()?.findById?.(userId)?.patch?.({
+				is_active: false
+			});
+		});
+
+		// Step 3: Emit event
+		this?.domainInterface?.eventEmitter?.emit?.('SERVER_USER_DELETED', {
+			userId: userId
+		});
+
+		// Finally, return relevant data...
+		return {
+			status: 204,
+			body: `Profile deleted successfully`
+		};
+	}
+	// #endregion
+}
+
+/**
+ * @class MiddlewareFactory
+ * @extends EVASBaseFactory
+ *
+ * @classdesc The ServerUser Domain Profile Basics Middleware Class Factory.
+ */
+export default class MiddlewareFactory extends EVASBaseFactory {
+	// #region Constructor
+	// eslint-disable-next-line jsdoc/require-jsdoc
+	constructor() {
+		super();
+	}
+	// #endregion
+
+	// #region Lifecycle API
+	/**
+	 * @memberof MiddlewareFactory
+	 * @async
+	 * @static
+	 * @override
+	 * @function
+	 * @name createInstance
+	 *
+	 * @param {object} [domainInterface] - Domain functionality exposed to sub-artifacts
+	 *
+	 * @returns {Basics} - The Basics middleware instance.
+	 *
+	 */
+	static async createInstances(domainInterface) {
+		if (!MiddlewareFactory.#basicsInstance) {
+			const basicsInstance = new Basics(
+				MiddlewareFactory['$disk_unc'],
+				domainInterface
+			);
+
+			await basicsInstance?.load?.();
+			MiddlewareFactory.#basicsInstance = basicsInstance;
+		}
+
+		return MiddlewareFactory.#basicsInstance;
+	}
+
+	/**
+	 * @memberof MiddlewareFactory
+	 * @async
+	 * @static
+	 * @override
+	 * @function
+	 * @name destroyInstances
+	 *
+	 * @returns {undefined} - Nothing.
+	 *
+	 * @description Clears the Basics instance
+	 */
+	static async destroyInstances() {
+		await MiddlewareFactory.#basicsInstance?.unload?.();
+		MiddlewareFactory.#basicsInstance = undefined;
+
+		return;
+	}
+	// #endregion
+
+	// #region Getters
+	/**
+	 * @memberof MiddlewareFactory
+	 * @async
+	 * @static
+	 * @override
+	 * @function
+	 * @name MiddlewareName
+	 *
+	 * @returns {string} - Name of this middleware.
+	 *
+	 * @description
+	 * Returns the name of this middleware - Basics
+	 */
+	static get MiddlewareName() {
+		return 'Basics';
+	}
+	// #endregion
+
+	// #region Private Static Members
+	static #basicsInstance = undefined;
+	// #endregion
+}

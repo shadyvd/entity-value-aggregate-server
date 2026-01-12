@@ -28,18 +28,19 @@ export default async function serializeDeserialize(
 		callback?.(undefined, user?.id);
 	});
 
-	passportInstance?.deserializeUser?.(async (request, userId, callback) => {
-		try {
-			const tenant = JSON?.parse?.(request?.headers?.['tenant']);
-			const deserializedUser = await userSessionCache(
-				tenant?.id,
-				userId,
-				cacheRepository,
-				databaseRepository
-			);
-			callback?.(undefined, deserializedUser);
-		} catch (error) {
-			callback?.(error);
+	passportInstance?.deserializeUser?.(
+		async (request, sessionUser, callback) => {
+			try {
+				const deserializedUser = await userSessionCache(
+					sessionUser.role,
+					sessionUser.id,
+					cacheRepository,
+					databaseRepository
+				);
+				callback?.(undefined, deserializedUser);
+			} catch (error) {
+				callback?.(error);
+			}
 		}
-	});
+	);
 }

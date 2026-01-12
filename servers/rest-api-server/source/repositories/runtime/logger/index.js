@@ -3,7 +3,7 @@
  * @ignore
  */
 import { Buffer } from 'node:buffer';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 
 import { EVASBaseRepository } from '@twyr/framework-classes';
 import { EVASBaseFactory } from '@twyr/framework-classes';
@@ -87,8 +87,8 @@ class Logger extends EVASBaseRepository {
 			loggerTransports?.push?.(
 				new winston.transports.File({
 					filename: join?.(
-						this?.__dirname,
-						'../../../logs/error.log'
+						dirname?.(global.serverFilePath),
+						'logs/error.log'
 					),
 					format: loggerFormat,
 					level: 'error'
@@ -98,8 +98,8 @@ class Logger extends EVASBaseRepository {
 			loggerTransports?.push?.(
 				new winston.transports.File({
 					filename: join?.(
-						this?.__dirname,
-						'../../../logs/combined.log'
+						dirname?.(global.serverFilePath),
+						'logs/combined.log'
 					),
 					format: loggerFormat
 				})

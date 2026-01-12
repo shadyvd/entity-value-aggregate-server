@@ -2,6 +2,7 @@
  * Imports for this file
  * @ignore
  */
+import { errorSerializer } from '@twyr/error-serializer';
 import { EVASBaseRepository } from '@twyr/framework-classes';
 import { EVASBaseFactory } from '@twyr/framework-classes';
 
@@ -162,20 +163,12 @@ class SQLDatabase extends EVASBaseRepository {
 	}
 
 	async #databaseQueryError(error, query) {
-		let safeJsonStringify = await import('safe-json-stringify');
-		safeJsonStringify = safeJsonStringify?.['default'];
-
 		const queryLog = Object?.assign?.({}, query);
-		queryLog.error = {
-			message: error?.message,
-			stack: error?.stack?.split?.('\n')?.map?.((stackLine) => {
-				return stackLine?.trim?.();
-			})
-		};
+		queryLog.error = errorSerializer?.(error);
 
 		const logger = await this?.iocContainer?.resolve?.('Logger');
 		logger?.error?.(
-			`${this.name}::_databaseQueryError:\nQuery: ${safeJsonStringify?.(
+			`${this.name}::_databaseQueryError:\nQuery: ${JSON?.stringify?.(
 				queryLog,
 				undefined,
 				'\t'

@@ -148,6 +148,8 @@ export class BaseDomain extends EVASBaseDomain {
 	async #getModels(modelList) {
 		let loadModelResolutions = [];
 
+		if (!Array?.isArray?.(modelList)) modelList = [modelList];
+
 		for (const model of modelList) {
 			if (model?.model || model?.error) continue;
 

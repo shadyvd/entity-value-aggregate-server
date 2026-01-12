@@ -53,7 +53,7 @@ export class BaseSurface extends EVASBaseSurface {
 
 		surfacePath = surfacePath?.replaceAll?.('_', '-');
 		[
-			'server',
+			'servers',
 			'domains',
 			'bounded-contexts',
 			'surfaces',
@@ -210,105 +210,17 @@ export class BaseSurface extends EVASBaseSurface {
 		)
 			parsedPermissions = parsedPermissions?.[0]?.[0];
 
-		// Step 2: Setup the permission checker function
-		const checkSinglePermission = function checkSinglePermission(
-			permissionToCheck,
-			usersPermissions
-		) {
-			const checkForNegative = permissionToCheck?.indexOf?.('NOT') >= 0;
-
-			if (checkForNegative)
-				permissionToCheck = permissionToCheck
-					?.replace?.('NOT', '')
-					?.trim?.();
-
-			const permissionCheck =
-				usersPermissions?.includes?.(permissionToCheck);
-
-			return checkForNegative ? !permissionCheck : permissionCheck;
-		};
-
-		// Step 3: Create the Koa middleware...
+		// Step 2: Create the Koa middleware...
 		const permissionCheckerMiddleware =
 			async function permissionCheckerMiddleware(ctxt, next) {
-				// Step 3.1: Get the tenant id
-				const tenantId = ctxt?.state?.tenant?.id;
-				if (!tenantId) {
-					throw new Error(
-						`Unknown tenant! Cannot compute permissions`
-					);
+				// Step 3.1: The trivial Cases...
+				if (!ctxt.state.user) {
+					throw new Error(`No active session`);
 				}
 
-				// Step 3.2: Check if the User is present in the Context
-				const userPermissions =
-					// eslint-disable-next-line security/detect-object-injection
-					ctxt?.state?.user?.tenants?.[tenantId]?.['permissions'];
-
-				if (!userPermissions) {
-					throw new Error(
-						`User has no permissions with this Tenant!`
-					);
-				}
-
-				// Step 3.3: The trivial Cases...
 				if (parsedPermissions === 'registered') {
 					await next?.();
 					return;
-				}
-
-				if (userPermissions?.includes?.('administrator')) {
-					await next?.();
-					return;
-				}
-
-				// Step 3.4: If we're looking for only one permission...
-				if (!Array?.isArray?.(parsedPermissions)) {
-					const validPermission = checkSinglePermission?.(
-						parsedPermissions,
-						userPermissions
-					);
-
-					if (validPermission) {
-						await next?.();
-						return;
-					}
-
-					throw new Error(
-						`User does not have the "${permission}" permission with this Tenant!`
-					);
-				}
-
-				// Step 3.5: We are looking if the User has at least one permission
-				let doesUserHavePermission = false;
-
-				for (const permissionCombination of parsedPermissions) {
-					if (doesUserHavePermission) break;
-
-					if (permissionCombination?.length === 1) {
-						doesUserHavePermission = checkSinglePermission?.(
-							permissionCombination?.[0],
-							userPermissions
-						);
-						continue;
-					}
-
-					let isPermissionCombinationOk = true;
-					for (const permissionItem of permissionCombination) {
-						isPermissionCombinationOk =
-							isPermissionCombinationOk &&
-							checkSinglePermission?.(
-								permissionItem,
-								userPermissions
-							);
-					}
-
-					doesUserHavePermission = isPermissionCombinationOk;
-				}
-
-				if (!doesUserHavePermission) {
-					throw new Error(
-						`User doesn't have the required permissions with this Tenant!`
-					);
 				}
 
 				await next?.();

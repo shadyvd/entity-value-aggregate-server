@@ -1,0 +1,291 @@
+/**
+ * Imports for this file
+ * @ignore
+ */
+import { EVASBaseFactory } from '@twyr/framework-classes';
+import { BaseSurface } from 'baseclass:surface';
+
+/**
+ * @class Locale
+ * @extends BaseSurface
+ *
+ * @param {string} [location] - __dirname for this file in CJS, basically
+ * @param {object} [domainInterface] - Domain functionality exposed to sub-artifacts
+ *
+ * @classdesc The Locale Surface for the ServerUser Domain Profile.
+ */
+export class Locale extends BaseSurface {
+	// #region Constructor
+	// eslint-disable-next-line jsdoc/require-jsdoc
+	constructor(location, domainInterface) {
+		super(location, domainInterface);
+	}
+	// #endregion
+
+	// #region Lifecycle Methods
+	/**
+	 * @memberof Locale
+	 * @async
+	 * @instance
+	 * @override
+	 * @function
+	 * @name load
+	 *
+	 * @returns {null} - Nothing
+	 *
+	 * @description
+	 * Sets the user role in the request headers for access control purposes
+	 * by passing it in to the base class load method
+	 *
+	 */
+	async load() {
+		await super.load?.();
+	}
+	// #endregion
+
+	// #region Protected Methods, to be overridden by derived classes
+	/**
+	 * @memberof Locale
+	 * @async
+	 * @instance
+	 * @override
+	 * @function
+	 * @name _registerSurface
+	 *
+	 * @returns {null} - The routes to be added to the Rest API Router
+	 *
+	 * @description
+	 * Adds the route definitions and handlers for this surface to
+	 * the Rest API Router
+	 *
+	 */
+	async _registerSurface() {
+		const baseRoutes = await super._registerSurface?.();
+
+		baseRoutes?.push?.({
+			httpMethod: 'POST',
+			path: '/create',
+			middlewares: [await this?._rbac?.('registered')],
+			handler: this.#createLocale?.bind?.(this)
+		});
+
+		baseRoutes?.push?.({
+			httpMethod: 'PATCH',
+			path: '/update',
+			middlewares: [await this?._rbac?.('registered')],
+			handler: this.#updateLocale?.bind?.(this)
+		});
+
+		baseRoutes?.push?.({
+			httpMethod: 'DEL',
+			path: '/delete/:localeId',
+			middlewares: [await this?._rbac?.('registered')],
+			handler: this.#deleteLocale?.bind?.(this)
+		});
+
+		return baseRoutes;
+	}
+
+	/**
+	 * @memberof Locale
+	 * @async
+	 * @instance
+	 * @override
+	 * @function
+	 * @name _unregisterSurface
+	 *
+	 * @returns {null} - Nothing
+	 *
+	 * @description
+	 * Removes the route definitions and handlers for this surface from
+	 * the Rest API Router
+	 *
+	 */
+	async _unregisterSurface() {
+		await super._unregisterSurface?.();
+		return;
+	}
+	// #endregion
+
+	// #region Route Handlers
+	/**
+	 * @memberof Locale
+	 * @async
+	 * @instance
+	 * @override
+	 * @function
+	 * @name #createLocale
+	 *
+	 * @returns {null} - Nothing
+	 *
+	 * @description
+	 * Creates a new locale for the server-user with the id given
+	 *
+	 */
+	async #createLocale(ctxt) {
+		if (!ctxt?.isAuthenticated?.()) {
+			throw new Error(`No active session`);
+		}
+
+		const apiRegistry = this?.domainInterface?.apiRegistry;
+		const localeStatus = await apiRegistry?.execute?.('CREATE_LOCALE', {
+			user: ctxt?.state?.user,
+			data: ctxt.request.body
+		});
+
+		ctxt.status = localeStatus?.status;
+		ctxt.body = localeStatus?.body;
+	}
+
+	/**
+	 * @memberof Locale
+	 * @async
+	 * @instance
+	 * @override
+	 * @function
+	 * @name #updateLocale
+	 *
+	 * @returns {null} - Nothing
+	 *
+	 * @description
+	 * Updates an existing locale for a server-user in the system
+	 * A server-user has to be logged in
+	 *
+	 */
+	async #updateLocale(ctxt) {
+		if (!ctxt?.isAuthenticated?.()) {
+			throw new Error(`No active session`);
+		}
+
+		const apiRegistry = this?.domainInterface?.apiRegistry;
+		const localeUpdateStatus = await apiRegistry?.execute?.(
+			'UPDATE_LOCALE',
+			{
+				user: ctxt?.state?.user,
+				data: ctxt.request.body
+			}
+		);
+
+		ctxt.status = localeUpdateStatus?.status;
+		ctxt.body = localeUpdateStatus?.body;
+	}
+
+	/**
+	 * @memberof Locale
+	 * @async
+	 * @instance
+	 * @override
+	 * @function
+	 * @name #deleteLocale
+	 *
+	 * @returns {null} - Nothing
+	 *
+	 * @description
+	 * Deletes the locale of a server-user in the system
+	 * A server-user has to be logged in
+	 *
+	 */
+	async #deleteLocale(ctxt) {
+		if (!ctxt?.isAuthenticated?.()) {
+			throw new Error(`No active session`);
+		}
+
+		const apiRegistry = this?.domainInterface?.apiRegistry;
+		const localeDeleteStatus = await apiRegistry?.execute?.(
+			'DELETE_LOCALE',
+			{
+				user: ctxt?.state?.user,
+				localeId: ctxt?.params?.localeId
+			}
+		);
+
+		ctxt.status = localeDeleteStatus?.status;
+	}
+	// #endregion
+}
+
+/**
+ * @class SurfaceFactory
+ * @extends EVASBaseFactory
+ *
+ * @classdesc The ServerUser Domain Profile Context Locale Surface Class Factory.
+ */
+export default class SurfaceFactory extends EVASBaseFactory {
+	// #region Constructor
+	// eslint-disable-next-line jsdoc/require-jsdoc
+	constructor() {
+		super();
+	}
+	// #endregion
+
+	// #region Lifecycle API
+	/**
+	 * @memberof SurfaceFactory
+	 * @async
+	 * @static
+	 * @override
+	 * @function
+	 * @name createInstance
+	 *
+	 * @param {object} [domainInterface] - Domain functionality exposed to sub-artifacts
+	 *
+	 * @returns {Locale} - The Locale surface instance.
+	 *
+	 */
+	static async createInstances(domainInterface) {
+		if (!SurfaceFactory.#localeInstance) {
+			const localeInstance = new Locale(
+				SurfaceFactory['$disk_unc'],
+				domainInterface
+			);
+
+			await localeInstance?.load?.();
+			SurfaceFactory.#localeInstance = localeInstance;
+		}
+
+		return SurfaceFactory.#localeInstance;
+	}
+
+	/**
+	 * @memberof SurfaceFactory
+	 * @async
+	 * @static
+	 * @override
+	 * @function
+	 * @name destroyInstances
+	 *
+	 * @returns {undefined} - Nothing.
+	 *
+	 * @description Clears the Locale instance
+	 */
+	static async destroyInstances() {
+		await SurfaceFactory.#localeInstance?.unload?.();
+		SurfaceFactory.#localeInstance = undefined;
+
+		return;
+	}
+	// #endregion
+
+	// #region Getters
+	/**
+	 * @memberof SurfaceFactory
+	 * @async
+	 * @static
+	 * @override
+	 * @function
+	 * @name SurfaceName
+	 *
+	 * @returns {string} - Name of this surface.
+	 *
+	 * @description
+	 * Returns the name of this surface - Locale
+	 */
+	static get SurfaceName() {
+		return 'Locale';
+	}
+	// #endregion
+
+	// #region Private Static Members
+	static #localeInstance = undefined;
+	// #endregion
+}

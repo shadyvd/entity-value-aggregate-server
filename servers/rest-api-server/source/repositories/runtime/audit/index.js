@@ -90,12 +90,8 @@ class Audit extends EVASBaseRepository {
 		auditPayload['start_time'] = new Date(auditPayload?.['start_time']);
 		auditPayload['end_time'] = new Date(auditPayload?.['end_time']);
 
-		const connectionInstance = await this?.iocContainer?.resolve?.(
-			'MongoDB',
-			{
-				dbName: auditData?.tenant?.['sub_domain']
-			}
-		);
+		const connectionInstance =
+			await this?.iocContainer?.resolve?.('MongoDB');
 
 		const UserAuditTrailModel =
 			await ModelFactory?.createInstance?.(connectionInstance);

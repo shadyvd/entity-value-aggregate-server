@@ -84,7 +84,7 @@ class Renderer extends EVASBaseRepository {
 
 		const options = {
 			async: true,
-			compileDebug: serverEnvironment !== 'production'
+			compileDebug: global.serverEnvironment !== 'production'
 		};
 
 		let renderResolutions = [];

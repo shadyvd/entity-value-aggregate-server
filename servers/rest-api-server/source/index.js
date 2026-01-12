@@ -1,10 +1,10 @@
 /**
  * @license MITNFA
- * @version 0.1.0
+ * @version 0.2.0
  * @file Main Entry point of Entity Value Aggregate Server by Twyr
- * @author {@link mailto:vish.desai@auramwellness.com|Vish Desai}
+ * @author {@link mailto:shadyvd@hotmail.com|Vish Desai}
  * @name index.js
- * @copyright &copy; {@link https://auramwellness.com|Auram Wellness} 2025
+ * @copyright &copy; {@link https://twyr.github.io|Twyr} 2025
  */
 
 /**
@@ -74,7 +74,7 @@ const SERVER_NAME = process?.env?.SERVER_NAME ?? 'REST API Server';
 process.title = SERVER_NAME;
 
 /**
- * Step 5: define the startup / bootup process
+ * Step 5: Define the startup / bootup process
  * @ignore
  */
 let bootingUp = false;
@@ -115,7 +115,7 @@ const startupHandler = async () => {
 };
 
 /**
- * Step 6: Trap signals to catch multiple SIGKILL, etc. from hijacking a clean shutdown process
+ * Step 6: Define the clean shutdown process
  * @ignore
  */
 let shuttingDown = false;
@@ -154,8 +154,28 @@ const terminationHandler = async () => {
 	throw new Error(`Entity Value Aggregate Server Termination Error`);
 };
 
+/**
+ * Step 7: Trap signals to catch multiple SIGKILL, etc. from hijacking a clean shutdown process
+ * @ignore
+ */
 process?.on?.('SIGINT', terminationHandler);
 process?.on?.('SIGTERM', terminationHandler);
+
+process.on('uncaughtException', async (err) => {
+	console?.error?.(
+		`\n${SERVER_NAME} terminating due to uncaught exception:\n${JSON?.stringify?.(errorSerializer?.(err), null, 2)}\n\n`
+	);
+
+	await terminationHandler();
+});
+
+process.on('unhandledRejection', async (reason, location) => {
+	console?.error?.(
+		`\n${SERVER_NAME} terminating due to uncaught rejection:\n${reason} @ ${location}\n\n`
+	);
+
+	await terminationHandler();
+});
 
 /**
  * Finally.... start the server, and get going
