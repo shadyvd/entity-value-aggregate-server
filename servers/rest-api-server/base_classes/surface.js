@@ -89,11 +89,11 @@ export class BaseSurface extends EVASBaseSurface {
 		let Router = await import('@koa/router');
 		Router = Router?.['default'];
 
-		this.#router = new Router({ prefix: `${surfacePath}` });
-
 		// Step 3: Get the surface surface, and register it with the surface router
 		const surface = await this?._registerSurface?.();
 		for (const restApi of surface) {
+			const restApiVersion = restApi?.version ?? 1;
+
 			const httpMethod = restApi?.httpMethod?.toLowerCase?.();
 			const restPath = normalize?.(restApi?.path);
 
@@ -101,7 +101,18 @@ export class BaseSurface extends EVASBaseSurface {
 			routeMiddlewares?.push?.(restApi?.handler);
 
 			// eslint-disable-next-line security/detect-object-injection
-			this.#router?.[httpMethod]?.(restPath, ...routeMiddlewares);
+			let router = this.#routers?.get?.(`v${restApiVersion}`) ?? null;
+			if (!router) {
+				router = new Router({
+					prefix: `${surfacePath}`
+				});
+
+				// eslint-disable-next-line security/detect-object-injection
+				this.#routers?.set?.(`v${restApiVersion}`, router);
+			}
+
+			// eslint-disable-next-line security/detect-object-injection
+			router?.[httpMethod]?.(restPath, ...routeMiddlewares);
 		}
 
 		// Finally, add this router to the RESTApi Repository...
@@ -109,7 +120,9 @@ export class BaseSurface extends EVASBaseSurface {
 			await this?.domainInterface?.iocContainer?.resolve?.('RestApi');
 		const mainRouter = restApiInstance?.router;
 
-		mainRouter?.use?.(this.#router?.routes?.());
+		this.#routers?.forEach((router, key) => {
+			mainRouter?.get?.(key)?.use?.(router?.routes?.());
+		});
 	}
 
 	/**
@@ -129,10 +142,6 @@ export class BaseSurface extends EVASBaseSurface {
 	 */
 	async unload() {
 		await this?._unregisterSurface?.();
-
-		if (this.#router) this.#router.stack.length = 0;
-		this.#router = undefined;
-
 		await super.unload?.();
 	}
 	// #endregion
@@ -173,7 +182,11 @@ export class BaseSurface extends EVASBaseSurface {
 	 *
 	 */
 	async _unregisterSurface() {
-		this.#router.stack.length = 0;
+		this.#routers?.forEach((router) => {
+			router.stack.length = 0;
+		});
+
+		this.#routers?.clear?.();
 		return;
 	}
 
@@ -263,6 +276,6 @@ export class BaseSurface extends EVASBaseSurface {
 	// #endregion
 
 	// #region Private Fields
-	#router = undefined;
+	#routers = new Map();
 	// #endregion
 }

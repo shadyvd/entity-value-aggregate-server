@@ -31,7 +31,7 @@ const DEFAULT_SESSION_KEY = 'twyr.entity.aggregate.server';
 const DEFAULT_SESSION_MAX_AGE = 86_400_000;
 const DEFAULT_SERVER_PORT = 9090;
 
-const MAX_API_VERSION = 1;
+const DEFAULT_MAX_API_VERSION = 1;
 
 /**
  * @class RestApi
@@ -71,7 +71,6 @@ class RestApi extends EVASBaseIngressSurface {
 		await super.load?.();
 
 		const cache = await this?.iocContainer?.resolve?.('Cache');
-		// const logger = await this?.iocContainer?.resolve?.('Logger');
 
 		/**
 		 * Step 1: Setup the configuration
@@ -217,16 +216,25 @@ class RestApi extends EVASBaseIngressSurface {
 		// Step 2.10: The audit log hook...
 		this.#koaApp?.use?.(this.#auditLog?.bind?.(this));
 
-		// Finally, add in the router...
+		// Finally, add in the router for each allowed version...
 		let Router = await import('@koa/router');
 		Router = Router?.['default'];
 
-		this.#router = new Router({
-			prefix: `/api/v${configuration?.['MAX_API_VERSION'] ?? MAX_API_VERSION}`
-		});
+		for (
+			let apiVersionIdx = 1;
+			apiVersionIdx <=
+			(configuration?.['MAX_API_VERSION'] ?? DEFAULT_MAX_API_VERSION);
+			apiVersionIdx++
+		) {
+			const apiVersionRouter = new Router({
+				prefix: `/api/v${apiVersionIdx}`
+			});
 
-		this.#koaApp?.use?.(this.#router.routes());
-		this.#koaApp?.use?.(this.#router.allowedMethods());
+			this.#koaApp?.use?.(apiVersionRouter.routes());
+			this.#koaApp?.use?.(apiVersionRouter.allowedMethods());
+
+			this.#routers?.set?.(`v${apiVersionIdx}`, apiVersionRouter);
+		}
 	}
 
 	/**
@@ -246,9 +254,7 @@ class RestApi extends EVASBaseIngressSurface {
 	 */
 	async unload() {
 		await super.unload?.();
-
-		this.#router = undefined;
-		this.#koaApp = undefined;
+		await this?.stop?.();
 	}
 	// #endregion
 
@@ -306,26 +312,33 @@ class RestApi extends EVASBaseIngressSurface {
 						return;
 					}
 
+					const routerStack = [];
+					this.#routers?.forEach?.((router) => {
+						const thisStack = router?.stack
+							?.map?.((route) => {
+								const routeMethodPaths = route?.methods
+									?.map((method) => {
+										if (method === 'HEAD') return;
+										return `${method} ${route?.path}`;
+									})
+									?.filter((routeMethodPath) => {
+										return !!routeMethodPath;
+									});
+
+								return routeMethodPaths?.length > 1
+									? routeMethodPaths
+									: routeMethodPaths?.shift?.();
+							})
+							?.filter((route) => {
+								return !!route;
+							});
+
+						routerStack.push(...thisStack);
+					});
+
 					console?.info?.(
 						`\n${this?.name}::start: ${JSON?.stringify?.(
-							this.#router?.stack
-								?.map?.((route) => {
-									const routeMethodPaths = route?.methods
-										?.map((method) => {
-											if (method === 'HEAD') return;
-											return `${method} ${route?.path}`;
-										})
-										?.filter((routeMethodPath) => {
-											return !!routeMethodPath;
-										});
-
-									return routeMethodPaths?.length > 1
-										? routeMethodPaths
-										: routeMethodPaths?.shift?.();
-								})
-								?.filter((route) => {
-									return !!route;
-								}),
+							routerStack,
 							undefined,
 							'\t'
 						)}`
@@ -371,8 +384,6 @@ class RestApi extends EVASBaseIngressSurface {
 	async stop() {
 		if (!this.#protocolServer) return;
 
-		this.#koaApp.off('error', this.#handleKoaAppError.bind(this));
-
 		this.#protocolServer.off(
 			'error',
 			this.#handleProtocolServerError.bind(this)
@@ -385,16 +396,23 @@ class RestApi extends EVASBaseIngressSurface {
 
 		this.#protocolServer?.closeAllConnections?.();
 		this.#protocolServer?.close?.();
-
-		this.#router.stack.length = 0;
 		this.#protocolServer = undefined;
+
+		this.#koaApp.off('error', this.#handleKoaAppError.bind(this));
+		this.#koaApp = undefined;
+
+		this.#routers?.forEach?.((router) => {
+			router.stack.length = 0;
+		});
+
+		this.#routers?.clear?.();
 	}
 	// #endregion
 
 	// #region Getters / Setters
 	get interface() {
 		return {
-			router: this.#router,
+			router: this.#routers,
 
 			start: this?.start?.bind?.(this),
 			stop: this?.stop?.bind?.(this)
@@ -598,7 +616,7 @@ class RestApi extends EVASBaseIngressSurface {
 	// #endregion
 
 	// #region Private Fields
-	#router = undefined;
+	#routers = new Map();
 
 	#koaApp = undefined;
 	#protocolServer = undefined;
