@@ -106,7 +106,55 @@ exports.up = async function (knex) {
 			);
 	}
 
-	// Step 4: Create the locales master table
+	// Step 4: Create the country code master table
+	exists = await knex?.schema
+		?.withSchema?.('public')
+		?.hasTable?.('country_code_master');
+	if (!exists) {
+		await knex?.schema
+			?.withSchema?.('public')
+			?.createTable?.(
+				'country_code_master',
+				function (countryCodeMasterTable) {
+					countryCodeMasterTable
+						?.text?.('iso_code')
+						?.notNullable?.()
+						?.primary?.()
+						?.defaultTo?.('IND')
+						?.comment?.(
+							`The 3-letter alphabetic code used by the International Standards Organization for each country`
+						);
+
+					countryCodeMasterTable
+						?.text?.('unsd_code')
+						?.notNullable?.()
+						?.defaultTo?.('356')
+						?.comment?.(
+							`The 3-digit numeric code used by the United Nations Statistics Division for each country`
+						);
+
+					countryCodeMasterTable
+						?.text?.('country_name')
+						?.notNullable?.()
+						?.defaultTo?.('India');
+					countryCodeMasterTable
+						?.boolean?.('is_enabled')
+						?.notNullable?.()
+						?.defaultTo?.(false);
+
+					countryCodeMasterTable
+						?.timestamp?.('created_at')
+						?.notNullable?.()
+						?.defaultTo?.(knex.fn.now());
+					countryCodeMasterTable
+						?.timestamp?.('updated_at')
+						?.notNullable?.()
+						?.defaultTo?.(knex.fn.now());
+				}
+			);
+	}
+
+	// Step 5: Create the locales master table
 	exists = await knex?.schema
 		?.withSchema?.('public')
 		?.hasTable?.('locale_master');
@@ -121,7 +169,13 @@ exports.up = async function (knex) {
 					?.defaultTo?.('en-US');
 				localesMasterTable?.text?.('language_code')?.notNullable?.();
 				localesMasterTable?.text?.('language_name')?.notNullable?.();
-				localesMasterTable?.text?.('country_code')?.notNullable?.();
+				localesMasterTable
+					?.text?.('country_code')
+					?.notNullable?.()
+					?.references?.('iso_code')
+					?.inTable?.('country_code_master')
+					?.onDelete?.('CASCADE')
+					?.onUpdate?.('CASCADE');
 				localesMasterTable?.text?.('country_name')?.notNullable?.();
 				localesMasterTable?.text?.('is_rtl')?.notNullable?.();
 				localesMasterTable
@@ -143,6 +197,9 @@ exports.up = async function (knex) {
 
 exports.down = async function (knex) {
 	await knex?.raw?.(`DROP TABLE IF EXISTS public.locale_master CASCADE;`);
+	await knex?.raw?.(
+		`DROP TABLE IF EXISTS public.country_code_master CASCADE;`
+	);
 	await knex?.raw?.(
 		`DROP TABLE IF EXISTS public.connection_status_master CASCADE;`
 	);
