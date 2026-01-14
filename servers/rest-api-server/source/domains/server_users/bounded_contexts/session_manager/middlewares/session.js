@@ -172,14 +172,33 @@ export class Session extends ServerUserBaseMiddleware {
 			?.toLocaleString?.(DateTime?.TIME_WITH_SHORT_OFFSET)
 			?.toLocaleUpperCase?.();
 
-		let responseMsg = {
+		// Step 4: Prepare the response message
+		const i18nRepository =
+			await this?.domainInterface?.iocContainer?.resolve?.('MessageI18N');
+
+		const otpMessage = await i18nRepository?.translate(
+			'SERVER_USERS::SESSION_MANAGER::OTP_MESSAGE_SMS',
+			userLocale,
+			{
+				otp: secureOtp,
+				expiryTime: expiryTime
+			}
+		);
+
+		const responseMessage = await i18nRepository?.interface?.translate(
+			'SERVER_USERS::SESSION_MANAGER::OTP_MESSAGE_RESPONSE',
+			userLocale
+		);
+
+		let responseMsgStruct = {
 			type: 'sms',
 			username: username,
 			otp: secureOtp,
 			expiryTime: expiryTime,
-			message: `Your OTP for Twyr is ${secureOtp}. Valid till ${expiryTime}.`
+			message: otpMessage
 		};
 
+		// Step 4: Send the OTP via notification service in production
 		if (global.serverEnvironment === 'production') {
 			// Send notification to user with the OTP
 			const notificationRepository =
@@ -187,21 +206,21 @@ export class Session extends ServerUserBaseMiddleware {
 					'Notification'
 				);
 
-			await notificationRepository?.send?.(responseMsg);
+			await notificationRepository?.send?.(responseMsgStruct);
 		}
 
-		// Step 4: Send the OTP back
+		// Finally, send the HTTP Response back
 		return {
 			status: 200,
 			body:
 				global.serverEnvironment !== 'production'
-					? responseMsg
-					: 'OTP Sent Successfully'
+					? responseMsgStruct
+					: responseMessage
 		};
 	}
 
 	async #login({ user }) {
-		// THIS IS WHERE THE POST-LOGIN PROCESSING, IF ANY REQUIRED
+		// THIS IS WHERE THE POST-LOGIN PROCESSING, IF ANY REQUIRED,
 		// GETS EXECUTED
 
 		// Step 1: Emit event so other parts of the system can start
@@ -224,6 +243,10 @@ export class Session extends ServerUserBaseMiddleware {
 		// Finally: Return the logged in user details
 		return {
 			status: 200,
+			sessionData: {
+				id: user?.id,
+				role: 'server_user'
+			},
 			body: loggedInUser
 		};
 	}

@@ -473,7 +473,13 @@ class RestApi extends EVASBaseIngressSurface {
 			error: undefined
 		};
 
-		// Step 2: Now, execute the request, and log the time taken
+		// Step 2: Start the console audit block
+		if (process.stdout.isTTY) {
+			const logger = await this?.iocContainer?.resolve?.('Logger');
+			logger?.debug?.(`\n${'='.repeat(process.stdout.columns)}`);
+		}
+
+		// Step 3: Now, execute the request, and log the time taken
 		const startTime = process?.hrtime?.bigint?.();
 		logMessageMeta['start_time'] = new Date()?.valueOf?.();
 		try {
@@ -488,7 +494,7 @@ class RestApi extends EVASBaseIngressSurface {
 			endTime - startTime
 		)?.milliseconds;
 
-		// Step 3: Fill in the user details, if needed...
+		// Step 4: Fill in the user details, if needed...
 		// This is here because, in case of the "login" call, the user
 		// is populated only after the login has been successfully executed
 		if (!logMessageMeta?.user?.id) {
@@ -501,7 +507,7 @@ class RestApi extends EVASBaseIngressSurface {
 			};
 		}
 
-		// Step 4: Fill in the request header details
+		// Step 5: Fill in the request header details
 		// We do this here, instead of earlier, to ensure that any
 		// modifications to the headers by downstream middlewares
 		// are also captured - for example, the "userRole" header
@@ -516,7 +522,7 @@ class RestApi extends EVASBaseIngressSurface {
 
 		logMessageMeta['request-meta']['headers'] = requestHeaders;
 
-		// Step 5: Fill in the response headers / data / error details
+		// Step 6: Fill in the response headers / data / error details
 		logMessageMeta['response-meta']['headers'] = JSON?.parse?.(
 			safeJsonStringify?.(ctxt?.response?.headers)
 		);
@@ -554,10 +560,6 @@ class RestApi extends EVASBaseIngressSurface {
 		auditRepository?.publish?.(logMessageMeta);
 
 		if (!throwableError) return;
-
-		if (throwableError?.message?.startsWith?.('ApiMatcher'))
-			throw throwableError?.cause ?? throwableError;
-
 		throw throwableError;
 	}
 

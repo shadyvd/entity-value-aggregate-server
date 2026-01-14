@@ -174,16 +174,9 @@ export class Main extends BaseSurface {
 	 *
 	 */
 	async #login(ctxt) {
-		if (!ctxt?.isAuthenticated?.()) {
-			throw new Error(`User could not be authenticated`);
+		if (ctxt?.isAuthenticated?.()) {
+			throw new Error(`Active session already exists`);
 		}
-
-		// Set the user role in the session
-		// for all future access control checks
-		ctxt.session.passport.user = {
-			id: ctxt.session.passport.user,
-			role: 'server_user'
-		};
 
 		const apiRegistry = this?.domainInterface?.apiRegistry;
 		const postLoginStatus = await apiRegistry?.execute?.('LOGIN', {
@@ -191,6 +184,7 @@ export class Main extends BaseSurface {
 			role: ctxt?.session?.passport?.user?.['role']
 		});
 
+		ctxt.session.passport.user = postLoginStatus?.sessionData;
 		ctxt.status = postLoginStatus?.status;
 		ctxt.body = postLoginStatus?.body;
 	}
