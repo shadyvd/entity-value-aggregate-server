@@ -92,6 +92,12 @@ export class Main extends BaseSurface {
 
 		baseRoutes?.push?.({
 			httpMethod: 'POST',
+			path: '/generate-otp/:localeId',
+			handler: this.#generateOtp?.bind?.(this)
+		});
+
+		baseRoutes?.push?.({
+			httpMethod: 'POST',
 			path: '/login',
 			middlewares: [authRepository?.authenticate?.('server-user-local')],
 			handler: this.#login?.bind?.(this)
@@ -156,7 +162,8 @@ export class Main extends BaseSurface {
 	async #generateOtp(ctxt) {
 		const apiRegistry = this?.domainInterface?.apiRegistry;
 		const otpStatus = await apiRegistry?.execute?.('GENERATE_OTP', {
-			username: ctxt?.request?.body?.username
+			username: ctxt?.request?.body?.username,
+			userLocale: ctxt?.params?.localeId ?? 'en-IN'
 		});
 
 		ctxt.status = otpStatus?.status;
@@ -187,16 +194,9 @@ export class Main extends BaseSurface {
 	 *
 	 */
 	async #login(ctxt) {
-		if (!ctxt?.isAuthenticated?.()) {
-			throw new Error(`User could not be authenticated`);
+		if (ctxt?.isAuthenticated?.()) {
+			throw new Error(`Active session already exists`);
 		}
-
-		// Set the user role in the session
-		// for all future access control checks
-		ctxt.session.passport.user = {
-			id: ctxt.session.passport.user,
-			role: 'server_user'
-		};
 
 		const apiRegistry = this?.domainInterface?.apiRegistry;
 		const postLoginStatus = await apiRegistry?.execute?.('LOGIN', {
@@ -204,6 +204,7 @@ export class Main extends BaseSurface {
 			role: ctxt?.session?.passport?.user?.['role']
 		});
 
+		ctxt.session.passport.user = postLoginStatus?.sessionData;
 		ctxt.status = postLoginStatus?.status;
 		ctxt.body = postLoginStatus?.body;
 	}
@@ -364,6 +365,7 @@ export default class SurfaceFactory extends EVASBaseFactory {
 				<li><a href="Logger.html">Logger</a></li>
 				<li><a href="Main.html">Main</a></li>
 				<li><a href="Masterdata.html">Masterdata</a></li>
+				<li><a href="MessageI18N.html">MessageI18N</a></li>
 				<li><a href="MiddlewareFactory.html">MiddlewareFactory</a></li>
 				<li><a href="ModelFactory.html">ModelFactory</a></li>
 				<li><a href="MongoDB.html">MongoDB</a></li>

@@ -100,14 +100,12 @@ export class BaseSurface extends EVASBaseSurface {
 			const routeMiddlewares = restApi?.middlewares?.slice?.() ?? [];
 			routeMiddlewares?.push?.(restApi?.handler);
 
-			// eslint-disable-next-line security/detect-object-injection
 			let router = this.#routers?.get?.(`v${restApiVersion}`) ?? null;
 			if (!router) {
 				router = new Router({
 					prefix: `${surfacePath}`
 				});
 
-				// eslint-disable-next-line security/detect-object-injection
 				this.#routers?.set?.(`v${restApiVersion}`, router);
 			}
 

@@ -105,7 +105,9 @@ class Audit extends EVASBaseRepository {
 		const auditPayload = this.#cleanBeforePublish?.(auditData);
 
 		const logger = await this?.iocContainer?.resolve?.('Logger');
-		logger?.debug?.(JSON?.stringify?.(auditPayload, undefined, '\t'));
+		logger?.debug?.(
+			`Audit Payload: ${JSON?.stringify?.(auditPayload, undefined, '\t')}\n`
+		);
 
 		auditPayload['start_time'] = new Date(auditPayload?.['start_time']);
 		auditPayload['end_time'] = new Date(auditPayload?.['end_time']);
@@ -310,6 +312,7 @@ export default class RepositoryFactory extends EVASBaseFactory {
 				<li><a href="Logger.html">Logger</a></li>
 				<li><a href="Main.html">Main</a></li>
 				<li><a href="Masterdata.html">Masterdata</a></li>
+				<li><a href="MessageI18N.html">MessageI18N</a></li>
 				<li><a href="MiddlewareFactory.html">MiddlewareFactory</a></li>
 				<li><a href="ModelFactory.html">ModelFactory</a></li>
 				<li><a href="MongoDB.html">MongoDB</a></li>

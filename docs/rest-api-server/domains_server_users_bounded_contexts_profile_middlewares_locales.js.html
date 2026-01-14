@@ -198,7 +198,7 @@ export class Locales extends ServerUserBaseMiddleware {
 			user: user,
 			payload: data,
 
-			relationships: 'serverUser',
+			relationships: '[serverUser, locale]',
 			serializeType: 'server_user_locale',
 
 			eventName: 'SERVER_USER_LOCALE_CREATED'
@@ -236,7 +236,7 @@ export class Locales extends ServerUserBaseMiddleware {
 			user: user,
 			payload: data,
 
-			relationships: 'serverUser',
+			relationships: '[serverUser, locale]',
 			serializeType: 'server_user_locale',
 
 			eventName: 'SERVER_USER_LOCALE_UPDATED'
@@ -381,6 +381,7 @@ export default class MiddlewareFactory extends EVASBaseFactory {
 				<li><a href="Logger.html">Logger</a></li>
 				<li><a href="Main.html">Main</a></li>
 				<li><a href="Masterdata.html">Masterdata</a></li>
+				<li><a href="MessageI18N.html">MessageI18N</a></li>
 				<li><a href="MiddlewareFactory.html">MiddlewareFactory</a></li>
 				<li><a href="ModelFactory.html">ModelFactory</a></li>
 				<li><a href="MongoDB.html">MongoDB</a></li>

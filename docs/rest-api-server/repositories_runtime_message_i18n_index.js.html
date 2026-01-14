@@ -3,7 +3,7 @@
 
 	<head>
 		<meta charset="utf-8">
-		<title>JSDoc: Source: repositories/runtime/cache/index.js</title>
+		<title>JSDoc: Source: repositories/runtime/message_i18n/index.js</title>
 		<script src="scripts/prettify/prettify.js"> </script>
 		<script src="scripts/prettify/lang-css.js"> </script>
 		<!--[if lt IE 9]>
@@ -15,41 +15,28 @@
 
 	<body>
 		<div id="main">
-			<h1 class="page-title">Source: repositories/runtime/cache/index.js</h1>
+			<h1 class="page-title">Source: repositories/runtime/message_i18n/index.js</h1>
 			<section>
 				<article>
 					<pre class="prettyprint source linenums"><code>/**
  * Imports for this file
  * @ignore
  */
-import { Buffer } from 'node:buffer';
-import { createClient } from 'redis';
-
 import { EVASBaseRepository } from '@twyr/framework-classes';
 import { EVASBaseFactory } from '@twyr/framework-classes';
 
 /**
- * Magic Number constants
- * @ignore
- */
-const DEFAULT_REDIS_HOST = '127.0.0.1';
-const DEFAULT_REDIS_PORT = 6379;
-const DEFAULT_REDIS_DATABASE = 0;
-
-const DEFAULT_MAX_RETRY_COUNT = 5;
-
-/**
- * @class Cache
+ * @class MessageI18N
  * @extends EVASBaseRepository
  *
  * @param {string} [location] - __dirname for this file in CJS, basically
  * @param {object} [iocContainer] - IoC module providing DI repositories
  * @param {object} [configuration] - requested repository configuration
  *
- * @classdesc The Cache Repository Class.
+ * @classdesc The MessageI18N Repository Class.
  *
  */
-class Cache extends EVASBaseRepository {
+class MessageI18N extends EVASBaseRepository {
 	// #region Constructor
 	constructor(location, iocContainer, configuration) {
 		super(location, iocContainer, configuration);
@@ -58,7 +45,7 @@ class Cache extends EVASBaseRepository {
 
 	// #region Lifecycle Methods
 	/**
-	 * @memberof Cache
+	 * @memberof MessageI18N
 	 * @async
 	 * @instance
 	 * @override
@@ -75,66 +62,68 @@ class Cache extends EVASBaseRepository {
 	async load() {
 		await super.load?.();
 
-		// Step 1: Setup the configuration
-		const defaultConfiguration = {
-			socket: {
-				host: DEFAULT_REDIS_HOST,
-				port: DEFAULT_REDIS_PORT,
-				database: DEFAULT_REDIS_DATABASE,
-				reconnectStrategy: (retries /* cause */) => {
-					this.#retryCount = retries;
+		const databaseRepository =
+			await this?.iocContainer?.resolve?.('SQLDatabase');
 
-					if (retries > DEFAULT_MAX_RETRY_COUNT) {
-						return false;
-					}
-
-					return Math.min(retries * 250, 5000);
-				}
-			}
-		};
-
-		const configuration =
-			await this?._mergeConfiguration?.(defaultConfiguration);
-
-		// Step 2: Setup the client
-		this.#redis = createClient(configuration);
-		this.#redis?.on?.('connect', this.#handleRedisConnection?.bind(this));
-		this.#redis?.on?.(
-			'reconnecting',
-			this.#handleRedisReconnection?.bind(this)
+		// Step 1: Get all the locales we've enabled in the system,
+		// along with the fallbacks
+		let enabledLocales = await databaseRepository?.raw?.(
+			`SELECT code FROM locale_master WHERE is_enabled = true;`
 		);
-		this.#redis?.on?.('error', this.#handleRedisError?.bind(this));
+		enabledLocales = enabledLocales?.rows?.map?.((row) => row?.code) ?? [];
 
-		//
-		// PATCH STUFF THAT WE NEED
-		//
-		this.#redis.setex = this.#redis.setEx.bind(this.#redis);
+		const staticCatalog = {};
+		(enabledLocales ?? []).forEach((el) => {
+			// eslint-disable-next-line security/detect-object-injection
+			staticCatalog[el] = {};
+		});
 
-		// Step 3: Open a connection to the server
-		await this.#redis?.connect?.();
+		// TODO: Write a DB FUNCTION to walk up the priority tree of fallbacks
+		// and return the full list of fallbacks for each locale.
+		// For now, just get the direct fallbacks
+		const fallbackLocales = await databaseRepository?.(
+			'locale_fallback_master'
+		)
+			?.select('locale_code', 'fallback_locale_code')
+			?.whereIn?.('locale_code', enabledLocales)
+			?.andWhere('priority', 1);
 
-		// Step 4: In development mode, monitor all the commands
-		// sent to the cache server
-		//
-		// TODO: ONCE the Redis driver fixes its bugs
-		//
-		/*
-		if (serverEnvironment === 'production') return;
-		if (this?.configuration) return;
+		const i18nFallbacks = {};
+		(fallbackLocales ?? []).forEach((row) => {
+			const { locale_code, fallback_locale_code } = row;
+			// eslint-disable-next-line security/detect-object-injection
+			i18nFallbacks[locale_code] = fallback_locale_code;
+		});
 
-		this.#monitor = this.#redis?.duplicate?.();
-		this.#monitor?.on?.(
-			'monitor',
-			this.#logRedisCommands?.bind?.(this)
-		);
+		// Step 2: Setup the i18n instance
+		let I18n = await import('i18n');
+		I18n = I18n?.['default'];
 
-		await this.#monitor?.connect?.();
-		await this.#monitor?.sendCommand?.(['MONITOR']);
-		*/
+		I18n?.configure?.({
+			debug: global.serverEnvironment !== 'production',
+			locales: enabledLocales,
+			staticCatalog: staticCatalog,
+			fallbacks: i18nFallbacks,
+			defaultLocale: 'en-US',
+			objectNotation: false,
+			updateFiles: false,
+			syncFiles: false,
+			autoReload: false,
+
+			logDebugFn: this.#i18nDebugLog?.bind(this),
+			logWarnFn: this.#i18nWarnLog?.bind(this),
+			logErrorFn: this.#i18nErrorLog?.bind(this)
+		});
+
+		this.#i18n = I18n;
+
+		// Step 3: Load the translations
+		await this.#loadTranslations?.();
+		return;
 	}
 
 	/**
-	 * @memberof Cache
+	 * @memberof MessageI18N
 	 * @async
 	 * @instance
 	 * @override
@@ -149,58 +138,114 @@ class Cache extends EVASBaseRepository {
 	 *
 	 */
 	async unload() {
-		if (this.#monitor) {
-			await this.#monitor?.disconnect?.();
-			this.#monitor = undefined;
-		}
-
-		if (this.#redis) {
-			await this.#redis?.disconnect?.();
-			this.#redis = undefined;
-		}
-
 		await super.unload?.();
+		this.#i18n = undefined;
 	}
 	// #endregion
 
 	// #region Getters / Setters
 	get interface() {
-		return this.#redis;
+		return {
+			translate: this.#translate.bind(this)
+		};
 	}
 	// #endregion
 
 	// #region Private Methods
-	//
-	// TODO: ONCE the Redis driver fixes its bugs
-	//
-	/*
-	async #logRedisCommands() {
-		const logger = await this?.iocContainer?.resolve?.('Logger');
-		logger?.debug?.(arguments);
-	}
-	*/
+	async #loadTranslations() {
+		const databaseRepository =
+			await this?.iocContainer?.resolve?.('SQLDatabase');
 
-	async #handleRedisConnection() {
-		this.#retryCount = 0;
-	}
-
-	async #handleRedisReconnection() {}
-
-	async #handleRedisError(error) {
-		const logger = await this?.iocContainer?.resolve?.('Logger');
-		logger?.error?.(
-			`Redis Error (Re-try count = ${this.#retryCount}): ${error?.message}\n${error.stack}`
+		// Step 1: Get all the locales we've enabled in the system,
+		// along with the fallbacks
+		let enabledLocales = await databaseRepository?.raw?.(
+			`SELECT code FROM locale_master WHERE is_enabled = true;`
 		);
+		enabledLocales = enabledLocales?.rows?.map?.((row) => row?.code) ?? [];
 
-		if (this.#retryCount > DEFAULT_MAX_RETRY_COUNT) throw error;
+		// Step 2: Fetch the system messages from the database
+		let systemMessages = await databaseRepository?.(
+			'system_message_by_locale_master'
+		)
+			?.select('message_code', 'locale_code', 'message_text')
+			?.whereIn?.('locale_code', enabledLocales);
+
+		// Step 3: Organize the messages into locales, etc.
+		const i18nCatalog = {};
+		for (const systemMessage of systemMessages) {
+			const { message_code, locale_code, message_text } = systemMessage;
+
+			// eslint-disable-next-line security/detect-object-injection
+			if (!i18nCatalog[locale_code]) {
+				// eslint-disable-next-line security/detect-object-injection
+				i18nCatalog[locale_code] = {};
+			}
+
+			// eslint-disable-next-line security/detect-object-injection
+			i18nCatalog[locale_code][message_code] = message_text;
+		}
+
+		// Step 4: Load the messages into i18n
+		for (const localeCode of Object.keys(i18nCatalog)) {
+			this.#i18n?.addLocale?.(localeCode);
+			this.#i18n?.setLocale?.(localeCode);
+
+			const localeCatalog = this.#i18n?.getCatalog?.(localeCode);
+			// eslint-disable-next-line security/detect-object-injection
+			for (const messageCode of Object.keys(i18nCatalog[localeCode])) {
+				// eslint-disable-next-line security/detect-object-injection
+				localeCatalog[messageCode] =
+					// eslint-disable-next-line security/detect-object-injection
+					i18nCatalog[localeCode][messageCode];
+			}
+		}
+		return;
+	}
+
+	async #translate(key, locale, variables) {
+		// Implementation for translation logic goes here
+		// This is a placeholder implementation
+		// return `Translated(${key}, ${locale}, ${JSON.stringify(variables ?? {})})`;
+		let translatedMessage = undefined;
+
+		if (!translatedMessage) {
+			translatedMessage = this.#i18n?.__?.(
+				{ phrase: key, locale: locale },
+				variables
+			);
+		}
+
+		if (!translatedMessage) {
+			await this.#loadTranslations?.();
+			translatedMessage = this.#i18n?.__?.(
+				{ phrase: key, locale: locale },
+				variables
+			);
+		}
+
+		return translatedMessage
+			? translatedMessage
+			: `COULD NOT TRANSLATE: ${key}, ${locale}, ${JSON.stringify(variables ?? {})}`;
+	}
+
+	async #i18nDebugLog(message) {
+		const logger = await this?.iocContainer?.resolve?.('Logger');
+		logger?.debug?.(`i18n::debug: ${message}`);
+	}
+
+	async #i18nWarnLog(message) {
+		const logger = await this?.iocContainer?.resolve?.('Logger');
+		logger?.warn?.(`i18n::warn: ${message}`);
+	}
+
+	async #i18nErrorLog(message) {
+		const logger = await this?.iocContainer?.resolve?.('Logger');
+		logger?.error?.(`i18n::error: ${message}`);
 	}
 	// #endregion
 
 	// #region Private Fields
-	#redis = undefined;
-	#monitor = undefined;
-
-	#retryCount = 0;
+	#i18n = undefined;
 	// #endregion
 }
 
@@ -208,7 +253,7 @@ class Cache extends EVASBaseRepository {
  * @class RepositoryFactory
  * @extends EVASBaseFactory
  *
- * @classdesc The Cache Repository Class Factory.
+ * @classdesc The MessageI18N Repository Class Factory.
  */
 export default class RepositoryFactory extends EVASBaseFactory {
 	// #region Constructor
@@ -230,7 +275,7 @@ export default class RepositoryFactory extends EVASBaseFactory {
 	 * @param {object} [configuration] - requested repository configuration
 	 * @param {object} [iocContainer] - IoC Container providing DI Repositories
 	 *
-	 * @returns {Cache} - The cache repository instance.
+	 * @returns {MessageI18N} - The MessageI18N repository instance.
 	 *
 	 */
 	static async createInstances(configuration, iocContainer) {
@@ -238,21 +283,22 @@ export default class RepositoryFactory extends EVASBaseFactory {
 			JSON?.stringify?.(configuration ?? {})
 		)?.toString?.('base64');
 
-		if (!RepositoryFactory.#cacheInstances?.has(repositoryKey)) {
-			const cacheInstance = new Cache(
+		if (!RepositoryFactory.#messageI18NInstances?.has(repositoryKey)) {
+			const messageI18NInstance = new MessageI18N(
 				RepositoryFactory['$disk_unc'],
 				iocContainer,
 				configuration
 			);
 
-			await cacheInstance?.load?.();
-			RepositoryFactory.#cacheInstances?.set?.(
+			await messageI18NInstance?.load?.();
+			RepositoryFactory.#messageI18NInstances?.set?.(
 				repositoryKey,
-				cacheInstance
+				messageI18NInstance
 			);
 		}
 
-		return RepositoryFactory.#cacheInstances?.get(repositoryKey)?.interface;
+		return RepositoryFactory.#messageI18NInstances?.get(repositoryKey)
+			?.interface;
 	}
 
 	/**
@@ -267,7 +313,7 @@ export default class RepositoryFactory extends EVASBaseFactory {
 	 *
 	 * @returns {undefined} - Nothing.
 	 *
-	 * @description Clears the cached {Cache} instances
+	 * @description Clears the cached {MessageI18N} instances
 	 */
 	static async destroyInstances(configuration) {
 		if (configuration) {
@@ -275,23 +321,24 @@ export default class RepositoryFactory extends EVASBaseFactory {
 				JSON?.stringify?.(configuration)
 			)?.toString?.('base64');
 
-			if (!RepositoryFactory.#cacheInstances?.has(repositoryKey)) return;
+			if (!RepositoryFactory.#messageI18NInstances?.has(repositoryKey))
+				return;
 
-			const cacheInstance =
-				RepositoryFactory.#cacheInstances?.get(repositoryKey);
-			await cacheInstance?.unload?.();
+			const messageI18NInstance =
+				RepositoryFactory.#messageI18NInstances?.get(repositoryKey);
+			await messageI18NInstance?.unload?.();
 
-			RepositoryFactory.#cacheInstances?.delete?.(repositoryKey);
+			RepositoryFactory.#messageI18NInstances?.delete?.(configuration);
 			return;
 		}
 
 		const destroyResolutions = [];
-		this.#cacheInstances?.forEach?.((cacheInstance) => {
-			destroyResolutions?.push?.(cacheInstance?.unload?.());
+		this.#messageI18NInstances?.forEach?.((sqlDatabaseInstance) => {
+			destroyResolutions?.push?.(sqlDatabaseInstance?.unload?.());
 		});
 
 		await Promise?.allSettled?.(destroyResolutions);
-		this.#cacheInstances?.clear?.();
+		this.#messageI18NInstances?.clear?.();
 
 		return;
 	}
@@ -309,15 +356,15 @@ export default class RepositoryFactory extends EVASBaseFactory {
 	 * @returns {string} - Name of this repository.
 	 *
 	 * @description
-	 * Returns the name of this repository - Cache
+	 * Returns the name of this repository - MessageI18N
 	 */
 	static get RepositoryName() {
-		return 'Cache';
+		return 'MessageI18N';
 	}
 	// #endregion
 
 	// #region Private Static Members
-	static #cacheInstances = new Map();
+	static #messageI18NInstances = new Map();
 	// #endregion
 }
 </code></pre>

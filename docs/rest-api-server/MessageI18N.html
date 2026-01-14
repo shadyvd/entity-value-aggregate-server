@@ -3,7 +3,7 @@
 
 	<head>
 		<meta charset="utf-8">
-		<title>JSDoc: Class: ApplicationServer</title>
+		<title>JSDoc: Class: MessageI18N</title>
 		<script src="scripts/prettify/prettify.js"> </script>
 		<script src="scripts/prettify/lang-css.js"> </script>
 		<!--[if lt IE 9]>
@@ -15,18 +15,18 @@
 
 	<body>
 		<div id="main">
-			<h1 class="page-title">Class: ApplicationServer</h1>
+			<h1 class="page-title">Class: MessageI18N</h1>
 			<section>
 				<header>
-					<h2><span class="attribs"><span class="type-signature"></span></span>ApplicationServer<span class="signature">(location<span class="signature-attributes">opt</span>, serverName<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h2>
+					<h2><span class="attribs"><span class="type-signature"></span></span>MessageI18N<span class="signature">(location<span class="signature-attributes">opt</span>, iocContainer<span class="signature-attributes">opt</span>, configuration<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h2>
 					<div class="class-description">
-						<p>The Server's Application Class.</p>
+						<p>The MessageI18N Repository Class.</p>
 					</div>
 				</header>
 				<article>
 					<div class="container-overview">
 						<h2>Constructor</h2>
-						<h4 class="name" id="ApplicationServer"><span class="type-signature"></span>new ApplicationServer<span class="signature">(location<span class="signature-attributes">opt</span>, serverName<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+						<h4 class="name" id="MessageI18N"><span class="type-signature"></span>new MessageI18N<span class="signature">(location<span class="signature-attributes">opt</span>, iocContainer<span class="signature-attributes">opt</span>, configuration<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
 						<h5>Parameters:</h5>
 						<table class="params">
 							<thead>
@@ -47,19 +47,31 @@
 										&lt;optional><br>
 									</td>
 									<td class="description last">
-										<p>__dirname for this file, basically</p>
+										<p>__dirname for this file in CJS, basically</p>
 									</td>
 								</tr>
 								<tr>
-									<td class="name"><code>serverName</code></td>
+									<td class="name"><code>iocContainer</code></td>
 									<td class="type">
-										<span class="param-type">string</span>
+										<span class="param-type">object</span>
 									</td>
 									<td class="attributes">
 										&lt;optional><br>
 									</td>
 									<td class="description last">
-										<p>name for this application server</p>
+										<p>IoC module providing DI repositories</p>
+									</td>
+								</tr>
+								<tr>
+									<td class="name"><code>configuration</code></td>
+									<td class="type">
+										<span class="param-type">object</span>
+									</td>
+									<td class="attributes">
+										&lt;optional><br>
+									</td>
+									<td class="description last">
+										<p>requested repository configuration</p>
 									</td>
 								</tr>
 							</tbody>
@@ -69,7 +81,7 @@
 							<dd class="tag-source">
 								<ul class="dummy">
 									<li>
-										<a href="application-server.js.html">application-server.js</a>, <a href="application-server.js.html#line15">line 15</a>
+										<a href="repositories_runtime_message_i18n_index.js.html">repositories/runtime/message_i18n/index.js</a>, <a href="repositories_runtime_message_i18n_index.js.html#line8">line 8</a>
 									</li>
 								</ul>
 							</dd>
@@ -77,20 +89,23 @@
 					</div>
 					<h3 class="subsection-title">Extends</h3>
 					<ul>
-						<li>EVASBaseArtifact</li>
+						<li>EVASBaseRepository</li>
 					</ul>
 					<h3 class="subsection-title">Methods</h3>
 					<h4 class="name" id="load"><span class="type-signature">(async) </span>load<span class="signature">()</span><span class="type-signature"> &rarr; {null}</span></h4>
-					<p class="summary">Loads / Initializes / Starts-up sub-artifacts.</p>
+					<p class="summary">
+					<p>To be overridden by artifact implementations - for implementing custom
+						start logic</p>.</p>
 					<div class="description">
-						<p>Loads / Initializes / Starts-up sub-artifacts.</p>
+						<p>To be overridden by artifact implementations - for implementing custom
+							start logic</p>
 					</div>
 					<dl class="details">
 						<dt class="tag-source">Source:</dt>
 						<dd class="tag-source">
 							<ul class="dummy">
 								<li>
-									<a href="application-server.js.html">application-server.js</a>, <a href="application-server.js.html#line34">line 34</a>
+									<a href="repositories_runtime_message_i18n_index.js.html">repositories/runtime/message_i18n/index.js</a>, <a href="repositories_runtime_message_i18n_index.js.html#line27">line 27</a>
 								</li>
 							</ul>
 						</dd>
@@ -98,7 +113,7 @@
 					<h5>Returns:</h5>
 					<div class="param-desc">
 						<ul>
-							<li>Nothing.</li>
+							<li>Nothing</li>
 						</ul>
 					</div>
 					<dl>
@@ -110,16 +125,19 @@
 						</dd>
 					</dl>
 					<h4 class="name" id="unload"><span class="type-signature">(async) </span>unload<span class="signature">()</span><span class="type-signature"> &rarr; {null}</span></h4>
-					<p class="summary">Shuts-down / Un-initializes / Un-loads sub-artifacts.</p>
+					<p class="summary">
+					<p>To be overridden by artifact implementations - for implementing custom
+						stop logic</p>.</p>
 					<div class="description">
-						<p>Shuts-down / Un-initializes / Un-loads sub-artifacts.</p>
+						<p>To be overridden by artifact implementations - for implementing custom
+							stop logic</p>
 					</div>
 					<dl class="details">
 						<dt class="tag-source">Source:</dt>
 						<dd class="tag-source">
 							<ul class="dummy">
 								<li>
-									<a href="application-server.js.html">application-server.js</a>, <a href="application-server.js.html#line83">line 83</a>
+									<a href="repositories_runtime_message_i18n_index.js.html">repositories/runtime/message_i18n/index.js</a>, <a href="repositories_runtime_message_i18n_index.js.html#line105">line 105</a>
 								</li>
 							</ul>
 						</dd>
@@ -127,7 +145,7 @@
 					<h5>Returns:</h5>
 					<div class="param-desc">
 						<ul>
-							<li>Nothing.</li>
+							<li>Nothing</li>
 						</ul>
 					</div>
 					<dl>

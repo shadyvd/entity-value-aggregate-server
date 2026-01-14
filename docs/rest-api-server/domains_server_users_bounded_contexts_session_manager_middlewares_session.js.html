@@ -167,9 +167,13 @@ export class Session extends ServerUserBaseMiddleware {
 	// #endregion
 
 	// #region Handlers
-	async #generateOtp({ username }) {
+	async #generateOtp({ username, userLocale }) {
+		// In non-production environments, use a fixed OTP for ease of testing
+		let secureOtp = 909090;
+
 		// Step 1: Generate a crypto-secure random 6-digit OTP
-		let secureOtp = randomInt(100_000, 1_000_000);
+		if (global.serverEnvironment === 'production')
+			secureOtp = randomInt(100_000, 1_000_000);
 
 		// Step 2: Store the OTP with an expiry against the username
 		const cacheRepository =
@@ -180,29 +184,63 @@ export class Session extends ServerUserBaseMiddleware {
 		cacheMulti?.expire?.(`server-user-otp-${username}`, 600);
 		await cacheMulti?.exec?.();
 
-		// Step 3: Compute OTP expiry time
+		// Step 3: Compute OTP expiry time and setup the response message
 		let expiryTime = DateTime?.now?.()?.plus?.({ minutes: 10 });
 		expiryTime = expiryTime
 			// TODO: Get the locale based on user preferences
-			?.setLocale('en-IN')
-			?.toLocaleString?.(DateTime?.TIME_SIMPLE);
+			?.setLocale(userLocale ?? 'en-IN')
+			?.toLocaleString?.(DateTime?.TIME_WITH_SHORT_OFFSET)
+			?.toLocaleUpperCase?.();
 
-		let responseMsg = undefined;
+		// Step 4: Prepare the response message
+		const i18nRepository =
+			await this?.domainInterface?.iocContainer?.resolve?.('MessageI18N');
+
+		const otpMessage = await i18nRepository?.translate(
+			'SERVER_USERS::SESSION_MANAGER::OTP_MESSAGE_SMS',
+			userLocale,
+			{
+				otp: secureOtp,
+				expiryTime: expiryTime
+			}
+		);
+
+		const responseMessage = await i18nRepository?.interface?.translate(
+			'SERVER_USERS::SESSION_MANAGER::OTP_MESSAGE_RESPONSE',
+			userLocale
+		);
+
+		let responseMsgStruct = {
+			type: 'sms',
+			username: username,
+			otp: secureOtp,
+			expiryTime: expiryTime,
+			message: otpMessage
+		};
+
+		// Step 4: Send the OTP via notification service in production
 		if (global.serverEnvironment === 'production') {
-			responseMsg = `OTP for ${username} sent. Please check your device. Valid till ${expiryTime}.`;
-		} else {
-			responseMsg = `OTP for ${username}: ${secureOtp}. Valid till ${expiryTime}.`;
+			// Send notification to user with the OTP
+			const notificationRepository =
+				await this?.domainInterface?.iocContainer?.resolve?.(
+					'Notification'
+				);
+
+			await notificationRepository?.send?.(responseMsgStruct);
 		}
 
-		// Step 3: Send the OTP back
+		// Finally, send the HTTP Response back
 		return {
 			status: 200,
-			body: responseMsg
+			body:
+				global.serverEnvironment !== 'production'
+					? responseMsgStruct
+					: responseMessage
 		};
 	}
 
 	async #login({ user }) {
-		// THIS IS WHERE THE POST-LOGIN PROCESSING, IF ANY REQUIRED
+		// THIS IS WHERE THE POST-LOGIN PROCESSING, IF ANY REQUIRED,
 		// GETS EXECUTED
 
 		// Step 1: Emit event so other parts of the system can start
@@ -225,6 +263,10 @@ export class Session extends ServerUserBaseMiddleware {
 		// Finally: Return the logged in user details
 		return {
 			status: 200,
+			sessionData: {
+				id: user?.id,
+				role: 'server_user'
+			},
 			body: loggedInUser
 		};
 	}
@@ -353,6 +395,7 @@ export default class MiddlewareFactory extends EVASBaseFactory {
 				<li><a href="Logger.html">Logger</a></li>
 				<li><a href="Main.html">Main</a></li>
 				<li><a href="Masterdata.html">Masterdata</a></li>
+				<li><a href="MessageI18N.html">MessageI18N</a></li>
 				<li><a href="MiddlewareFactory.html">MiddlewareFactory</a></li>
 				<li><a href="ModelFactory.html">ModelFactory</a></li>
 				<li><a href="MongoDB.html">MongoDB</a></li>
