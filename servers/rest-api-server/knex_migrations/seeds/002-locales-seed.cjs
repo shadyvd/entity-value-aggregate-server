@@ -12,8 +12,6 @@
 const languageNames = require('cldr-localenames-full/main/en/languages.json');
 const territoryNames = require('cldr-localenames-full/main/en/territories.json');
 const likelySubtags = require('cldr-core/supplemental/likelySubtags.json');
-const rtlLanguages = require('cldr-misc-full/main/en/layout.json').main.en
-	.layout.orientation.characterOrder;
 
 exports.seed = async function (knex) {
 	const now = knex.fn.now();
@@ -21,12 +19,6 @@ exports.seed = async function (knex) {
 	const languages = languageNames.main.en.localeDisplayNames.languages;
 	const territories = territoryNames.main.en.localeDisplayNames.territories;
 	const subtags = likelySubtags.supplemental.likelySubtags;
-
-	const rtlLangSet = new Set(
-		Object.entries(rtlLanguages)
-			.filter(([, dir]) => dir === 'right-to-left')
-			.map(([lang]) => lang)
-	);
 
 	const rows = [];
 	const territoryToCountryCodeMap = new Map();
@@ -97,20 +89,34 @@ exports.seed = async function (knex) {
 		}
 
 		if (!countryCode) {
-			console.error(
+			console?.error?.(
 				`Country code not found for territory: ${territories[territory]}`
 			);
 			continue;
 		}
 
 		territoryToCountryCodeMap.set(territory, countryCode);
+
+		let characterOrder = undefined;
+		try {
+			characterOrder = require(
+				`cldr-misc-full/main/${localeCode}/layout.json`
+			);
+		} catch (error) {
+			console?.error?.(error?.message);
+		}
+
+		characterOrder =
+			characterOrder?.main?.[localeCode]?.layout?.orientation
+				?.characterOrder;
+
 		rows.push({
 			code: localeCode,
 			language_code: language,
 			language_name: languages[language],
 			country_code: countryCode,
 			country_name: territories[territory],
-			is_rtl: rtlLangSet.has(language),
+			is_rtl: characterOrder === 'right-to-left',
 			created_at: now,
 			updated_at: now
 		});
@@ -137,10 +143,13 @@ exports.seed = async function (knex) {
 			is_rtl: knex.raw('EXCLUDED.is_rtl')
 		});
 
-	await knex('locale_master')
-		.whereIn('code', ['en-US', 'en-GB', 'en-IN'])
-		.update({
-			is_enabled: true,
-			updated_at: now
-		});
+	await knex('locale_master').whereIn('code', ['en-US', 'en-GB']).update({
+		is_enabled: true,
+		updated_at: now
+	});
+
+	await knex('locale_master').where('country_name', 'India').update({
+		is_enabled: true,
+		updated_at: now
+	});
 };

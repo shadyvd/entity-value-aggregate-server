@@ -177,7 +177,10 @@ exports.up = async function (knex) {
 					?.onDelete?.('CASCADE')
 					?.onUpdate?.('CASCADE');
 				localesMasterTable?.text?.('country_name')?.notNullable?.();
-				localesMasterTable?.text?.('is_rtl')?.notNullable?.();
+				localesMasterTable
+					?.boolean?.('is_rtl')
+					?.notNullable?.()
+					?.defaultTo?.(false);
 				localesMasterTable
 					?.boolean?.('is_enabled')
 					?.notNullable?.()
