@@ -1,4 +1,4 @@
-cloc|github.com/AlDanial/cloc v 1.96  T=0.02 s (1105.9 files/s, 126873.6 lines/s)
+cloc|github.com/AlDanial/cloc v 1.96  T=0.02 s (1047.6 files/s, 120227.6 lines/s)
 --- | ---
 
 File|blank|comment|code
@@ -11,7 +11,7 @@ File|blank|comment|code
 ./helpers/loader.js|18|60|77
 ./lib/lifecycle_managers/evas-base-lifecycle-manager.js|18|109|56
 ./lib/base_classes/evas-base-ingress-surface.js|16|144|47
-./lib/base_classes/evas-base-repository.js|14|112|43
+./lib/base_classes/evas-base-repository.js|14|113|43
 ./.jsdocrc.json|1|0|41
 ./.mocharc.json|1|0|35
 ./lib/base_classes/evas-base-bounded-context.js|9|69|28
@@ -29,14 +29,14 @@ File|blank|comment|code
 ./.lintstagedrc.json|0|0|5
 ./tests/setup-mocks.cjs|0|0|5
 --------|--------|--------|--------
-SUM:|239|1398|1231
-cloc|github.com/AlDanial/cloc v 1.96  T=0.02 s (1105.9 files/s, 126873.6 lines/s)
+SUM:|239|1399|1231
+cloc|github.com/AlDanial/cloc v 1.96  T=0.02 s (1047.6 files/s, 120227.6 lines/s)
 --- | ---
 
 Language|files|blank|comment|code
 :-------|-------:|-------:|-------:|-------:
-JavaScript|19|233|1398|999
+JavaScript|19|233|1399|999
 JSON|5|4|0|215
 Markdown|1|2|0|17
 --------|--------|--------|--------|--------
-SUM:|25|239|1398|1231
+SUM:|25|239|1399|1231

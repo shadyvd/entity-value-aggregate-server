@@ -181,16 +181,16 @@
     </svg> Summary</h2>
   <p>
     <div style="float:left;padding-right:20px">
-      <strong>123</strong> modules
+      <strong>128</strong> modules
     </div>
     <div style="float:left;padding-right:20px">
-      <strong>188</strong> dependencies
+      <strong>189</strong> dependencies
     </div>
     <div style="float:left;padding-right:20px">
-      <strong>4</strong> errors
+      <strong>3</strong> errors
     </div>
     <div style="float:left;padding-right:20px">
-      <strong>35</strong> warnings
+      <strong>39</strong> warnings
     </div>
     <div style="float:left;padding-right:20px">
       <strong>0</strong> informational
@@ -232,7 +232,7 @@
          id="no-orphans-definition" 
          class="noiseless">no-orphans</a>
     </td>
-    <td><strong>6</strong></td>
+    <td><strong>10</strong></td>
     <td><strong>0</strong></td>
     <td>This is an orphan module - it's likely not used (anymore?). Either use it or remove it. If it's logical this module is an orphan (i.e. it's a config file), add an exception for it in your dependency-cruiser configuration. By default this rule does not scrutinize dotfiles (e.g. .eslintrc.js), TypeScript declaration files (.d.ts/ .d.cts/ .d.mts), tsconfig.json and some of the babel and webpack configs.</td>
   </tr>
@@ -268,7 +268,7 @@
          id="not-to-dev-dep-definition" 
          class="noiseless">not-to-dev-dep</a>
     </td>
-    <td><strong>4</strong></td>
+    <td><strong>3</strong></td>
     <td><strong>0</strong></td>
     <td>This module depends on an npm package from the 'devDependencies' section of your package.json. It looks like something that ships to production, though. To prevent problems with npm packages that aren't there on production declare it (only!) in the 'dependencies' section of your package.json. If this module is development only - add it to the from.pathNot re of the not-to-dev-dep rule in the dependency-cruiser configuration</td>
   </tr>
@@ -393,7 +393,7 @@
          id="not-to-dev-dep-instance"
          class="noiseless">not-to-dev-dep</a>
     </td>
-    <td><a href="https://github.com/twyr/entity-value-aggregate-server/src/main/knex_migrations/seeds/001-locales-seed.cjs">knex_migrations/seeds/001-locales-seed.cjs</a></td>
+    <td><a href="https://github.com/twyr/entity-value-aggregate-server/src/main/knex_migrations/seeds/002-locales-seed.cjs">knex_migrations/seeds/002-locales-seed.cjs</a></td>
     <td>../../node_modules/cldr-core/supplemental/likelySubtags.json</td>
   </tr>
   <tr>
@@ -403,7 +403,7 @@
          id="not-to-dev-dep-instance"
          class="noiseless">not-to-dev-dep</a>
     </td>
-    <td><a href="https://github.com/twyr/entity-value-aggregate-server/src/main/knex_migrations/seeds/001-locales-seed.cjs">knex_migrations/seeds/001-locales-seed.cjs</a></td>
+    <td><a href="https://github.com/twyr/entity-value-aggregate-server/src/main/knex_migrations/seeds/002-locales-seed.cjs">knex_migrations/seeds/002-locales-seed.cjs</a></td>
     <td>../../node_modules/cldr-localenames-full/main/en/languages.json</td>
   </tr>
   <tr>
@@ -413,18 +413,8 @@
          id="not-to-dev-dep-instance"
          class="noiseless">not-to-dev-dep</a>
     </td>
-    <td><a href="https://github.com/twyr/entity-value-aggregate-server/src/main/knex_migrations/seeds/001-locales-seed.cjs">knex_migrations/seeds/001-locales-seed.cjs</a></td>
+    <td><a href="https://github.com/twyr/entity-value-aggregate-server/src/main/knex_migrations/seeds/002-locales-seed.cjs">knex_migrations/seeds/002-locales-seed.cjs</a></td>
     <td>../../node_modules/cldr-localenames-full/main/en/territories.json</td>
-  </tr>
-  <tr>
-    <td class="error">error</td>
-    <td class="nowrap">
-      <a href="#not-to-dev-dep-definition" 
-         id="not-to-dev-dep-instance"
-         class="noiseless">not-to-dev-dep</a>
-    </td>
-    <td><a href="https://github.com/twyr/entity-value-aggregate-server/src/main/knex_migrations/seeds/001-locales-seed.cjs">knex_migrations/seeds/001-locales-seed.cjs</a></td>
-    <td>../../node_modules/cldr-misc-full/main/en/layout.json</td>
   </tr>
   <tr>
     <td class="warn">warn</td>
@@ -553,6 +543,16 @@
          id="no-orphans-instance"
          class="noiseless">no-orphans</a>
     </td>
+    <td><a href="https://github.com/twyr/entity-value-aggregate-server/src/main/knex_migrations/migrations/20260113065132-system-message-by-locale-master.cjs">knex_migrations/migrations/20260113065132-system-message-by-locale-master.cjs</a></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td class="warn">warn</td>
+    <td class="nowrap">
+      <a href="#no-orphans-definition" 
+         id="no-orphans-instance"
+         class="noiseless">no-orphans</a>
+    </td>
     <td><a href="https://github.com/twyr/entity-value-aggregate-server/src/main/knex_migrations/seeds/000-master-seed.cjs">knex_migrations/seeds/000-master-seed.cjs</a></td>
     <td></td>
   </tr>
@@ -563,7 +563,37 @@
          id="no-orphans-instance"
          class="noiseless">no-orphans</a>
     </td>
-    <td><a href="https://github.com/twyr/entity-value-aggregate-server/src/main/knex_migrations/seeds/002-server-user-seed.cjs">knex_migrations/seeds/002-server-user-seed.cjs</a></td>
+    <td><a href="https://github.com/twyr/entity-value-aggregate-server/src/main/knex_migrations/seeds/001-country-codes-seed.cjs">knex_migrations/seeds/001-country-codes-seed.cjs</a></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td class="warn">warn</td>
+    <td class="nowrap">
+      <a href="#no-orphans-definition" 
+         id="no-orphans-instance"
+         class="noiseless">no-orphans</a>
+    </td>
+    <td><a href="https://github.com/twyr/entity-value-aggregate-server/src/main/knex_migrations/seeds/003-locale-fallback-seed.cjs">knex_migrations/seeds/003-locale-fallback-seed.cjs</a></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td class="warn">warn</td>
+    <td class="nowrap">
+      <a href="#no-orphans-definition" 
+         id="no-orphans-instance"
+         class="noiseless">no-orphans</a>
+    </td>
+    <td><a href="https://github.com/twyr/entity-value-aggregate-server/src/main/knex_migrations/seeds/004-system-message-by-locale-seed.cjs">knex_migrations/seeds/004-system-message-by-locale-seed.cjs</a></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td class="warn">warn</td>
+    <td class="nowrap">
+      <a href="#no-orphans-definition" 
+         id="no-orphans-instance"
+         class="noiseless">no-orphans</a>
+    </td>
+    <td><a href="https://github.com/twyr/entity-value-aggregate-server/src/main/knex_migrations/seeds/100-server-user-seed.cjs">knex_migrations/seeds/100-server-user-seed.cjs</a></td>
     <td></td>
   </tr>
   <tr>
@@ -782,7 +812,7 @@
     </span>
   <footer>
     <p><a href="https://github.com/sverweij/dependency-cruiser">dependency-cruiser@17.3.6</a> /
-      2026-01-12T08:55:37.346Z</p>
+      2026-01-14T11:54:05.118Z</p>
   </footer>
 </body>
 </html>

@@ -79,7 +79,12 @@ class SQLDatabase extends EVASBaseRepository {
 
 			pool: {
 				min: DEFAULT_SQLDB_MIN_POOL_SIZE,
-				max: DEFAULT_SQLDB_MAX_POOL_SIZE
+				max: DEFAULT_SQLDB_MAX_POOL_SIZE,
+
+				afterCreate: (connection, done) => {
+					connection.on('notice', this.#databaseNotice?.bind?.(this));
+					done(null, connection);
+				}
 			}
 		};
 
@@ -168,8 +173,22 @@ class SQLDatabase extends EVASBaseRepository {
 
 		const logger = await this?.iocContainer?.resolve?.('Logger');
 		logger?.error?.(
-			`${this.name}::_databaseQueryError:\nQuery: ${JSON?.stringify?.(
+			`${this.name}::#databaseQueryError:\nQuery: ${JSON?.stringify?.(
 				queryLog,
+				undefined,
+				'\t'
+			)}`
+		);
+	}
+
+	async #databaseNotice(notice) {
+		let safeJsonStringify = await import('safe-json-stringify');
+		safeJsonStringify = safeJsonStringify?.['default'];
+
+		const logger = await this?.iocContainer?.resolve?.('Logger');
+		logger?.warn?.(
+			`${this?.name}#databaseNotice: ${safeJsonStringify?.(
+				notice,
 				undefined,
 				'\t'
 			)}`

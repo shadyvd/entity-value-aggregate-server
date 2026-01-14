@@ -101,7 +101,7 @@ class Notification extends EVASBaseRepository {
 	async send(notificationData) {
 		const logger = await this?.iocContainer?.resolve?.('Logger');
 		logger?.info?.(
-			`TODO: IMPLEMENT ACTUAL NOTIFICATION MECHANISM\nSending notifications: ${JSON.stringify?.(
+			`\nTODO: IMPLEMENT ACTUAL NOTIFICATION MECHANISM\nSending notifications: ${JSON.stringify?.(
 				notificationData,
 				undefined,
 				'\t'
@@ -241,6 +241,7 @@ export default class RepositoryFactory extends EVASBaseFactory {
 				<li><a href="Logger.html">Logger</a></li>
 				<li><a href="Main.html">Main</a></li>
 				<li><a href="Masterdata.html">Masterdata</a></li>
+				<li><a href="MessageI18N.html">MessageI18N</a></li>
 				<li><a href="MiddlewareFactory.html">MiddlewareFactory</a></li>
 				<li><a href="ModelFactory.html">ModelFactory</a></li>
 				<li><a href="MongoDB.html">MongoDB</a></li>

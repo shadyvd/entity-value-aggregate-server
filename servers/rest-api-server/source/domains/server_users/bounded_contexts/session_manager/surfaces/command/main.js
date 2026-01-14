@@ -125,18 +125,19 @@ export class Main extends BaseSurface {
 	 *
 	 * @example
 	 * // Execute CURL command from the terminal
-	 * // Send in the mobile number as "username"
+	 * // Send in the mobile number as "username", and preferred locale as "locale"
 	 * // The OTP will be sent to the actual number offline
-	 * $ curl -X POST -H "Content-Type: application/json" -d '{"username":"+911234567890"}' -c ./cookies.txt ${base_url}/api/v1/server_users/session-manager/generate-otp
+	 * $ curl -X POST -H "Content-Type: application/json" -d '{"username":"+911234567890", "locale":"en-IN"}' ${base_url}/api/v1/server-users/session-manager/generate-otp
 	 *
-	 * Generated OTP for +911234567890. It will remain valid for 10 minutes.
+	 * An OTP has been sent to your registered mobile number.
 	 * $
 	 *
 	 */
 	async #generateOtp(ctxt) {
 		const apiRegistry = this?.domainInterface?.apiRegistry;
 		const otpStatus = await apiRegistry?.execute?.('GENERATE_OTP', {
-			username: ctxt?.request?.body?.username
+			username: ctxt?.request?.body?.username,
+			userLocale: ctxt?.request?.body?.locale ?? 'en-IN'
 		});
 
 		ctxt.status = otpStatus?.status;
@@ -167,16 +168,9 @@ export class Main extends BaseSurface {
 	 *
 	 */
 	async #login(ctxt) {
-		if (!ctxt?.isAuthenticated?.()) {
-			throw new Error(`User could not be authenticated`);
+		if (ctxt?.isAuthenticated?.()) {
+			throw new Error(`Active session already exists`);
 		}
-
-		// Set the user role in the session
-		// for all future access control checks
-		ctxt.session.passport.user = {
-			id: ctxt.session.passport.user,
-			role: 'server_user'
-		};
 
 		const apiRegistry = this?.domainInterface?.apiRegistry;
 		const postLoginStatus = await apiRegistry?.execute?.('LOGIN', {
@@ -184,6 +178,7 @@ export class Main extends BaseSurface {
 			role: ctxt?.session?.passport?.user?.['role']
 		});
 
+		ctxt.session.passport.user = postLoginStatus?.sessionData;
 		ctxt.status = postLoginStatus?.status;
 		ctxt.body = postLoginStatus?.body;
 	}

@@ -80,6 +80,7 @@ export class EVASBaseRepository extends EVASBaseArtifact {
 	 * @name _mergeConfiguration
 	 *
 	 * @param {object} defaultConfiguration - The configuration to use when nothing is passed in
+	 * @param {string} repositoryName - The name of the repository for which configuration is to be fetched
 	 *
 	 * @returns {object} - Merged configuration object
 	 *
@@ -91,12 +92,12 @@ export class EVASBaseRepository extends EVASBaseArtifact {
 	 * - Merge the configuration passed into this instance
 	 *
 	 */
-	async _mergeConfiguration(defaultConfiguration) {
+	async _mergeConfiguration(defaultConfiguration, repositoryName) {
 		const configRepository =
 			await this?.iocContainer?.resolve?.('Configuration');
 
 		const environmentConfiguration = await configRepository?.getConfig?.(
-			this?.name
+			repositoryName ?? this?.name
 		);
 
 		const instanceConfiguration = this?.configuration ?? {};

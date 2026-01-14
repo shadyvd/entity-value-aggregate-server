@@ -31,7 +31,7 @@ const DEFAULT_SESSION_KEY = 'twyr.entity.aggregate.server';
 const DEFAULT_SESSION_MAX_AGE = 86_400_000;
 const DEFAULT_SERVER_PORT = 9090;
 
-const MAX_API_VERSION = 1;
+const DEFAULT_MAX_API_VERSION = 1;
 
 /**
  * @class RestApi
@@ -71,7 +71,6 @@ class RestApi extends EVASBaseIngressSurface {
 		await super.load?.();
 
 		const cache = await this?.iocContainer?.resolve?.('Cache');
-		// const logger = await this?.iocContainer?.resolve?.('Logger');
 
 		/**
 		 * Step 1: Setup the configuration
@@ -103,7 +102,7 @@ class RestApi extends EVASBaseIngressSurface {
 		sessionConfig.genid = function () {
 			return `${
 				configuration?.['SESSION_KEY'] ?? DEFAULT_SESSION_KEY
-			}!${uuidv4()}`;
+			}.${uuidv4()?.replaceAll('-', '')}`;
 		};
 
 		/**
@@ -217,16 +216,25 @@ class RestApi extends EVASBaseIngressSurface {
 		// Step 2.10: The audit log hook...
 		this.#koaApp?.use?.(this.#auditLog?.bind?.(this));
 
-		// Finally, add in the router...
+		// Finally, add in the router for each allowed version...
 		let Router = await import('@koa/router');
 		Router = Router?.['default'];
 
-		this.#router = new Router({
-			prefix: `/api/v${configuration?.['MAX_API_VERSION'] ?? MAX_API_VERSION}`
-		});
+		for (
+			let apiVersionIdx = 1;
+			apiVersionIdx <=
+			(configuration?.['MAX_API_VERSION'] ?? DEFAULT_MAX_API_VERSION);
+			apiVersionIdx++
+		) {
+			const apiVersionRouter = new Router({
+				prefix: `/api/v${apiVersionIdx}`
+			});
 
-		this.#koaApp?.use?.(this.#router.routes());
-		this.#koaApp?.use?.(this.#router.allowedMethods());
+			this.#koaApp?.use?.(apiVersionRouter.routes());
+			this.#koaApp?.use?.(apiVersionRouter.allowedMethods());
+
+			this.#routers?.set?.(`v${apiVersionIdx}`, apiVersionRouter);
+		}
 	}
 
 	/**
@@ -246,9 +254,7 @@ class RestApi extends EVASBaseIngressSurface {
 	 */
 	async unload() {
 		await super.unload?.();
-
-		this.#router = undefined;
-		this.#koaApp = undefined;
+		await this?.stop?.();
 	}
 	// #endregion
 
@@ -306,26 +312,33 @@ class RestApi extends EVASBaseIngressSurface {
 						return;
 					}
 
+					const routerStack = [];
+					this.#routers?.forEach?.((router) => {
+						const thisStack = router?.stack
+							?.map?.((route) => {
+								const routeMethodPaths = route?.methods
+									?.map((method) => {
+										if (method === 'HEAD') return;
+										return `${method} ${route?.path}`;
+									})
+									?.filter((routeMethodPath) => {
+										return !!routeMethodPath;
+									});
+
+								return routeMethodPaths?.length > 1
+									? routeMethodPaths
+									: routeMethodPaths?.shift?.();
+							})
+							?.filter((route) => {
+								return !!route;
+							});
+
+						routerStack.push(...thisStack);
+					});
+
 					console?.info?.(
 						`\n${this?.name}::start: ${JSON?.stringify?.(
-							this.#router?.stack
-								?.map?.((route) => {
-									const routeMethodPaths = route?.methods
-										?.map((method) => {
-											if (method === 'HEAD') return;
-											return `${method} ${route?.path}`;
-										})
-										?.filter((routeMethodPath) => {
-											return !!routeMethodPath;
-										});
-
-									return routeMethodPaths?.length > 1
-										? routeMethodPaths
-										: routeMethodPaths?.shift?.();
-								})
-								?.filter((route) => {
-									return !!route;
-								}),
+							routerStack,
 							undefined,
 							'\t'
 						)}`
@@ -371,8 +384,6 @@ class RestApi extends EVASBaseIngressSurface {
 	async stop() {
 		if (!this.#protocolServer) return;
 
-		this.#koaApp.off('error', this.#handleKoaAppError.bind(this));
-
 		this.#protocolServer.off(
 			'error',
 			this.#handleProtocolServerError.bind(this)
@@ -385,16 +396,23 @@ class RestApi extends EVASBaseIngressSurface {
 
 		this.#protocolServer?.closeAllConnections?.();
 		this.#protocolServer?.close?.();
-
-		this.#router.stack.length = 0;
 		this.#protocolServer = undefined;
+
+		this.#koaApp.off('error', this.#handleKoaAppError.bind(this));
+		this.#koaApp = undefined;
+
+		this.#routers?.forEach?.((router) => {
+			router.stack.length = 0;
+		});
+
+		this.#routers?.clear?.();
 	}
 	// #endregion
 
 	// #region Getters / Setters
 	get interface() {
 		return {
-			router: this.#router,
+			router: this.#routers,
 
 			start: this?.start?.bind?.(this),
 			stop: this?.stop?.bind?.(this)
@@ -455,7 +473,13 @@ class RestApi extends EVASBaseIngressSurface {
 			error: undefined
 		};
 
-		// Step 2: Now, execute the request, and log the time taken
+		// Step 2: Start the console audit block
+		if (process.stdout.isTTY) {
+			const logger = await this?.iocContainer?.resolve?.('Logger');
+			logger?.debug?.(`\n${'='.repeat(process.stdout.columns)}`);
+		}
+
+		// Step 3: Now, execute the request, and log the time taken
 		const startTime = process?.hrtime?.bigint?.();
 		logMessageMeta['start_time'] = new Date()?.valueOf?.();
 		try {
@@ -470,7 +494,7 @@ class RestApi extends EVASBaseIngressSurface {
 			endTime - startTime
 		)?.milliseconds;
 
-		// Step 3: Fill in the user details, if needed...
+		// Step 4: Fill in the user details, if needed...
 		// This is here because, in case of the "login" call, the user
 		// is populated only after the login has been successfully executed
 		if (!logMessageMeta?.user?.id) {
@@ -483,7 +507,7 @@ class RestApi extends EVASBaseIngressSurface {
 			};
 		}
 
-		// Step 4: Fill in the request header details
+		// Step 5: Fill in the request header details
 		// We do this here, instead of earlier, to ensure that any
 		// modifications to the headers by downstream middlewares
 		// are also captured - for example, the "userRole" header
@@ -498,7 +522,7 @@ class RestApi extends EVASBaseIngressSurface {
 
 		logMessageMeta['request-meta']['headers'] = requestHeaders;
 
-		// Step 5: Fill in the response headers / data / error details
+		// Step 6: Fill in the response headers / data / error details
 		logMessageMeta['response-meta']['headers'] = JSON?.parse?.(
 			safeJsonStringify?.(ctxt?.response?.headers)
 		);
@@ -536,10 +560,6 @@ class RestApi extends EVASBaseIngressSurface {
 		auditRepository?.publish?.(logMessageMeta);
 
 		if (!throwableError) return;
-
-		if (throwableError?.message?.startsWith?.('ApiMatcher'))
-			throw throwableError?.cause ?? throwableError;
-
 		throw throwableError;
 	}
 
@@ -598,7 +618,7 @@ class RestApi extends EVASBaseIngressSurface {
 	// #endregion
 
 	// #region Private Fields
-	#router = undefined;
+	#routers = new Map();
 
 	#koaApp = undefined;
 	#protocolServer = undefined;

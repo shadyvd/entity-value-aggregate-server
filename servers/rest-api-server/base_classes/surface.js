@@ -89,19 +89,28 @@ export class BaseSurface extends EVASBaseSurface {
 		let Router = await import('@koa/router');
 		Router = Router?.['default'];
 
-		this.#router = new Router({ prefix: `${surfacePath}` });
-
 		// Step 3: Get the surface surface, and register it with the surface router
 		const surface = await this?._registerSurface?.();
 		for (const restApi of surface) {
+			const restApiVersion = restApi?.version ?? 1;
+
 			const httpMethod = restApi?.httpMethod?.toLowerCase?.();
 			const restPath = normalize?.(restApi?.path);
 
 			const routeMiddlewares = restApi?.middlewares?.slice?.() ?? [];
 			routeMiddlewares?.push?.(restApi?.handler);
 
+			let router = this.#routers?.get?.(`v${restApiVersion}`) ?? null;
+			if (!router) {
+				router = new Router({
+					prefix: `${surfacePath}`
+				});
+
+				this.#routers?.set?.(`v${restApiVersion}`, router);
+			}
+
 			// eslint-disable-next-line security/detect-object-injection
-			this.#router?.[httpMethod]?.(restPath, ...routeMiddlewares);
+			router?.[httpMethod]?.(restPath, ...routeMiddlewares);
 		}
 
 		// Finally, add this router to the RESTApi Repository...
@@ -109,7 +118,9 @@ export class BaseSurface extends EVASBaseSurface {
 			await this?.domainInterface?.iocContainer?.resolve?.('RestApi');
 		const mainRouter = restApiInstance?.router;
 
-		mainRouter?.use?.(this.#router?.routes?.());
+		this.#routers?.forEach((router, key) => {
+			mainRouter?.get?.(key)?.use?.(router?.routes?.());
+		});
 	}
 
 	/**
@@ -129,10 +140,6 @@ export class BaseSurface extends EVASBaseSurface {
 	 */
 	async unload() {
 		await this?._unregisterSurface?.();
-
-		if (this.#router) this.#router.stack.length = 0;
-		this.#router = undefined;
-
 		await super.unload?.();
 	}
 	// #endregion
@@ -173,7 +180,11 @@ export class BaseSurface extends EVASBaseSurface {
 	 *
 	 */
 	async _unregisterSurface() {
-		this.#router.stack.length = 0;
+		this.#routers?.forEach((router) => {
+			router.stack.length = 0;
+		});
+
+		this.#routers?.clear?.();
 		return;
 	}
 
@@ -213,7 +224,6 @@ export class BaseSurface extends EVASBaseSurface {
 		// Step 2: Create the Koa middleware...
 		const permissionCheckerMiddleware =
 			async function permissionCheckerMiddleware(ctxt, next) {
-				// Step 3.1: The trivial Cases...
 				if (!ctxt.state.user) {
 					throw new Error(`No active session`);
 				}
@@ -264,6 +274,6 @@ export class BaseSurface extends EVASBaseSurface {
 	// #endregion
 
 	// #region Private Fields
-	#router = undefined;
+	#routers = new Map();
 	// #endregion
 }

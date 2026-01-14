@@ -85,7 +85,9 @@ class Audit extends EVASBaseRepository {
 		const auditPayload = this.#cleanBeforePublish?.(auditData);
 
 		const logger = await this?.iocContainer?.resolve?.('Logger');
-		logger?.debug?.(JSON?.stringify?.(auditPayload, undefined, '\t'));
+		logger?.debug?.(
+			`Audit Payload: ${JSON?.stringify?.(auditPayload, undefined, '\t')}\n`
+		);
 
 		auditPayload['start_time'] = new Date(auditPayload?.['start_time']);
 		auditPayload['end_time'] = new Date(auditPayload?.['end_time']);

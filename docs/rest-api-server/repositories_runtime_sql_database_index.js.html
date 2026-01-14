@@ -99,7 +99,12 @@ class SQLDatabase extends EVASBaseRepository {
 
 			pool: {
 				min: DEFAULT_SQLDB_MIN_POOL_SIZE,
-				max: DEFAULT_SQLDB_MAX_POOL_SIZE
+				max: DEFAULT_SQLDB_MAX_POOL_SIZE,
+
+				afterCreate: (connection, done) => {
+					connection.on('notice', this.#databaseNotice?.bind?.(this));
+					done(null, connection);
+				}
 			}
 		};
 
@@ -188,8 +193,22 @@ class SQLDatabase extends EVASBaseRepository {
 
 		const logger = await this?.iocContainer?.resolve?.('Logger');
 		logger?.error?.(
-			`${this.name}::_databaseQueryError:\nQuery: ${JSON?.stringify?.(
+			`${this.name}::#databaseQueryError:\nQuery: ${JSON?.stringify?.(
 				queryLog,
+				undefined,
+				'\t'
+			)}`
+		);
+	}
+
+	async #databaseNotice(notice) {
+		let safeJsonStringify = await import('safe-json-stringify');
+		safeJsonStringify = safeJsonStringify?.['default'];
+
+		const logger = await this?.iocContainer?.resolve?.('Logger');
+		logger?.warn?.(
+			`${this?.name}#databaseNotice: ${safeJsonStringify?.(
+				notice,
 				undefined,
 				'\t'
 			)}`
@@ -344,6 +363,7 @@ export default class RepositoryFactory extends EVASBaseFactory {
 				<li><a href="Logger.html">Logger</a></li>
 				<li><a href="Main.html">Main</a></li>
 				<li><a href="Masterdata.html">Masterdata</a></li>
+				<li><a href="MessageI18N.html">MessageI18N</a></li>
 				<li><a href="MiddlewareFactory.html">MiddlewareFactory</a></li>
 				<li><a href="ModelFactory.html">ModelFactory</a></li>
 				<li><a href="MongoDB.html">MongoDB</a></li>
