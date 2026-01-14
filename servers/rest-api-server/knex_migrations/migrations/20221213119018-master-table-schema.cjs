@@ -193,9 +193,60 @@ exports.up = async function (knex) {
 					?.defaultTo?.(knex.fn.now());
 			});
 	}
+
+	exists = await knex?.schema
+		?.withSchema?.('public')
+		?.hasTable?.('locale_fallback_master');
+	if (!exists) {
+		await knex?.schema
+			?.withSchema?.('public')
+			?.createTable?.(
+				'locale_fallback_master',
+				function (localesFallbackMasterTable) {
+					localesFallbackMasterTable
+						?.text?.('locale_code')
+						?.notNullable?.()
+						?.defaultTo?.('en-US')
+						?.references?.('code')
+						?.inTable?.('locale_master')
+						?.onDelete?.('CASCADE')
+						?.onUpdate?.('CASCADE');
+
+					localesFallbackMasterTable
+						?.text?.('fallback_locale_code')
+						?.notNullable?.()
+						?.defaultTo?.('en-US')
+						?.references?.('code')
+						?.inTable?.('locale_master')
+						?.onDelete?.('CASCADE')
+						?.onUpdate?.('CASCADE');
+
+					localesFallbackMasterTable
+						?.integer?.('priority')
+						?.notNullable?.();
+
+					localesFallbackMasterTable
+						?.timestamp?.('created_at')
+						?.notNullable?.()
+						?.defaultTo?.(knex.fn.now());
+					localesFallbackMasterTable
+						?.timestamp?.('updated_at')
+						?.notNullable?.()
+						?.defaultTo?.(knex.fn.now());
+
+					localesFallbackMasterTable?.primary?.([
+						'locale_code',
+						'priority'
+					]);
+				}
+			);
+	}
 };
 
 exports.down = async function (knex) {
+	await knex?.raw?.(
+		`DROP TABLE IF EXISTS public.locale_fallback_master CASCADE;`
+	);
 	await knex?.raw?.(`DROP TABLE IF EXISTS public.locale_master CASCADE;`);
 	await knex?.raw?.(
 		`DROP TABLE IF EXISTS public.country_code_master CASCADE;`
