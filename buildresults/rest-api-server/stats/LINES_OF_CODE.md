@@ -1,52 +1,56 @@
-cloc|github.com/AlDanial/cloc v 1.96  T=0.05 s (1216.3 files/s, 219883.2 lines/s)
+cloc|github.com/AlDanial/cloc v 1.96  T=0.05 s (1283.4 files/s, 259295.4 lines/s)
 --- | ---
 
 File|blank|comment|code
 :-------|-------:|-------:|-------:
-./source/ingress_surfaces/rest_api/index.js|106|188|405
+./knex_migrations/seeds/001-country-codes-seed.cjs|1|7|1592
+./source/ingress_surfaces/rest_api/index.js|108|188|423
 ./source/domains/server_users/bounded_contexts/profile/middlewares/basics.js|61|116|303
 ./knex_migrations/migrations/20221213123852-server-user-schema.cjs|29|5|254
+./knex_migrations/migrations/20221213119018-master-table-schema.cjs|22|5|234
 ./source/domains/server_users/bounded_contexts/profile/middlewares/locales.js|43|101|193
 ./source/domains/server_users/bounded_contexts/profile/middlewares/contacts.js|40|101|192
+./source/domains/server_users/bounded_contexts/session_manager/middlewares/session.js|44|117|190
 ./source/bounded_contexts/masterdata/middlewares/masterdata.js|33|103|187
-./package.json|0|0|173
-./source/domains/server_users/bounded_contexts/session_manager/middlewares/session.js|38|113|158
+./package.json|0|0|174
+./source/repositories/runtime/message_i18n/index.js|44|134|171
+./source/repositories/runtime/sql_database/index.js|44|117|158
 ./base_classes/domain.js|46|98|147
-./source/repositories/runtime/sql_database/index.js|41|117|142
-./knex_migrations/migrations/20221213119018-master-table-schema.cjs|13|4|136
 ./source/bounded_contexts/masterdata/surfaces/query/main.js|27|208|128
 ./source/repositories/runtime/logger/index.js|31|117|124
 ./source/domains/server_users/base_classes/middleware.js|30|149|119
 ./source/repositories/runtime/cache/index.js|40|146|116
+./base_classes/surface.js|32|132|115
+./knex_migrations/seeds/002-locales-seed.cjs|15|20|111
 ./eslint.config.js|11|42|108
 ./source/domains/server_users/bounded_contexts/session_manager/event_handlers/session.js|27|101|107
-./base_classes/surface.js|31|133|105
+./source/domains/server_users/bounded_contexts/session_manager/surfaces/command/main.js|27|188|106
 ./source/repositories/runtime/mongodb/index.js|32|118|105
-./source/domains/server_users/bounded_contexts/session_manager/surfaces/command/main.js|27|190|103
 ./source/domains/server_users/bounded_contexts/profile/surfaces/command/contact.js|25|164|102
 ./source/domains/server_users/bounded_contexts/profile/surfaces/command/locale.js|25|164|102
 ./source/index.js|34|49|101
+./source/repositories/runtime/audit/index.js|33|136|99
 ./source/domains/server_users/index.js|18|119|98
-./source/repositories/runtime/audit/index.js|33|136|97
 ./source/domains/server_users/bounded_contexts/profile/surfaces/command/main.js|27|164|95
 ./source/repositories/runtime/auth/index.js|26|110|89
 ./base_classes/middleware.js|23|129|87
+./knex_migrations/migrations/20260113065132-system-message-by-locale-master.cjs|11|2|86
 ./knex_migrations/seeds/000-master-seed.cjs|17|9|82
 ./source/application-server.js|24|95|76
 ./custom_loaders/baseclass-loader.js|17|45|74
 ./source/repositories/runtime/renderer/index.js|19|128|68
-./knex_migrations/seeds/002-server-user-seed.cjs|12|7|65
+./knex_migrations/seeds/100-server-user-seed.cjs|12|7|65
 ./source/domains/server_users/bounded_contexts/profile/surfaces/query/contact.js|17|209|64
 ./source/domains/server_users/bounded_contexts/profile/surfaces/query/locale.js|17|207|64
 ./source/repositories/runtime/auth/helpers/user-session-cache.js|13|23|63
 ./source/repositories/runtime/audit/audit-trail-model.js|12|33|59
 ./source/domains/server_users/bounded_contexts/profile/surfaces/query/main.js|16|142|58
-./knex_migrations/seeds/001-locales-seed.cjs|14|20|56
 ./knex_migrations/knexfile.cjs|12|0|55
 ./source/repositories/runtime/notification/index.js|15|127|55
 ./source/repositories/init/configuration/index.js|13|121|49
 ./source/repositories/runtime/auth/strategies/server-user-local.js|5|15|42
 ./.jsdocrc.json|1|0|41
+./knex_migrations/seeds/003-locale-fallback-seed.cjs|8|11|41
 ./source/domains/server_users/bounded_contexts/session_manager/index.js|11|97|41
 ./source/bounded_contexts/masterdata/index.js|11|97|40
 ./source/domains/server_users/bounded_contexts/profile/index.js|11|97|40
@@ -56,6 +60,7 @@ File|blank|comment|code
 ./source/domains/server_users/models/relational/server-user-locale.cjs|6|28|30
 ./base_classes/bounded-context.js|11|68|28
 ./source/repositories/runtime/auth/strategies/serialize-user.js|2|19|25
+./knex_migrations/seeds/004-system-message-by-locale-seed.cjs|2|2|21
 ./source/domains/server_users/models/relational/contact-type-master.cjs|6|28|21
 ./source/domains/server_users/models/relational/gender-master.cjs|6|28|21
 ./source/domains/server_users/models/relational/locale-master.cjs|6|28|21
@@ -69,15 +74,15 @@ File|blank|comment|code
 ./source/domains/server_users/templates/email/new-server-user.ejs|2|0|4
 ./source/domains/server_users/templates/email/update-server-user.ejs|2|0|4
 --------|--------|--------|--------
-SUM:|1243|5002|5506
-cloc|github.com/AlDanial/cloc v 1.96  T=0.05 s (1216.3 files/s, 219883.2 lines/s)
+SUM:|1331|5160|7652
+cloc|github.com/AlDanial/cloc v 1.96  T=0.05 s (1283.4 files/s, 259295.4 lines/s)
 --- | ---
 
 Language|files|blank|comment|code
 :-------|-------:|-------:|-------:|-------:
-JavaScript|57|1233|5002|5220
-JSON|5|4|0|262
+JavaScript|62|1321|5160|7365
+JSON|5|4|0|263
 Markdown|1|2|0|16
 EJS|2|4|0|8
 --------|--------|--------|--------|--------
-SUM:|65|1243|5002|5506
+SUM:|70|1331|5160|7652
