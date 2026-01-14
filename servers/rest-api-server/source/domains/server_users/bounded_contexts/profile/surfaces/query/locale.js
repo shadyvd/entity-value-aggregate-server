@@ -63,6 +63,7 @@ export class Locale extends BaseSurface {
 		const baseRoutes = await super._registerSurface?.();
 
 		baseRoutes?.push?.({
+			version: 1,
 			httpMethod: 'GET',
 			path: '/',
 			middlewares: [await this?._rbac?.('registered')],
@@ -70,6 +71,7 @@ export class Locale extends BaseSurface {
 		});
 
 		baseRoutes?.push?.({
+			version: 1,
 			httpMethod: 'GET',
 			path: '/:localeId',
 			middlewares: [await this?._rbac?.('registered')],

@@ -65,12 +65,14 @@ export class Main extends BaseSurface {
 		const baseRoutes = await super._registerSurface?.();
 
 		baseRoutes?.push?.({
+			version: 1,
 			httpMethod: 'POST',
 			path: '/generate-otp',
 			handler: this.#generateOtp?.bind?.(this)
 		});
 
 		baseRoutes?.push?.({
+			version: 1,
 			httpMethod: 'POST',
 			path: '/login',
 			middlewares: [authRepository?.authenticate?.('server-user-local')],
@@ -78,6 +80,7 @@ export class Main extends BaseSurface {
 		});
 
 		baseRoutes?.push?.({
+			version: 1,
 			httpMethod: 'POST',
 			path: '/logout',
 			middlewares: [await this?._rbac?.('registered')],

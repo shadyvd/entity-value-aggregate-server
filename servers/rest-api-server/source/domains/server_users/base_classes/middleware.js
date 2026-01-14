@@ -153,7 +153,11 @@ export class ServerUserBaseMiddleware extends BaseMiddleware {
 		// Step 4: Emit event
 		this?.domainInterface?.eventEmitter?.emit?.(data?.eventName, {
 			serverUserId: data?.serverUserId,
-			addressId: createdEntity?.id
+			entityId: createdEntity?.id
+		});
+
+		this?.domainInterface?.eventEmitter?.emit?.('SERVER_USER_LOGOUT', {
+			userId: data?.serverUserId
 		});
 
 		return {
@@ -255,6 +259,10 @@ export class ServerUserBaseMiddleware extends BaseMiddleware {
 			entityId: updatedEntity?.id
 		});
 
+		this?.domainInterface?.eventEmitter?.emit?.('SERVER_USER_LOGOUT', {
+			userId: data?.serverUserId
+		});
+
 		return {
 			status: 201,
 			body: updatedEntity
@@ -288,6 +296,10 @@ export class ServerUserBaseMiddleware extends BaseMiddleware {
 		this?.domainInterface?.eventEmitter?.emit?.(data?.eventName, {
 			serverUserId: data?.user?.id,
 			entityId: data?.entityId
+		});
+
+		this?.domainInterface?.eventEmitter?.emit?.('SERVER_USER_LOGOUT', {
+			userId: data?.serverUserId
 		});
 
 		return {

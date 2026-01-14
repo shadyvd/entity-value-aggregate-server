@@ -136,7 +136,7 @@ export class Session extends BaseEventHandler {
 		const cache =
 			await this?.domainInterface?.iocContainer?.resolve?.('Cache');
 		await cache?.del?.(
-			`twyr!entity!value!aggregate!user!${eventData?.userId}!basics`
+			`twyr!entity!value!aggregate!server_user!${eventData?.userId}!basics`
 		);
 
 		const logger =

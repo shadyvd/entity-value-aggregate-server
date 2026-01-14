@@ -10,7 +10,7 @@ const getUserDetails = async function getUserDetails(
 ) {
 	// Step 1: Get the details from the cache, if present
 	let cachedUser = await cacheRepository?.get?.(
-		`twyr!entity!value!aggregate!user!${userId}!basics`
+		`twyr!entity!value!aggregate!${userRole}!${userId}!basics`
 	);
 	if (cachedUser) {
 		cachedUser = JSON?.parse?.(cachedUser);
@@ -45,12 +45,12 @@ const getUserDetails = async function getUserDetails(
 	// Finally, Set the details in the cache for the future...
 	const cacheMulti = await cacheRepository?.multi?.();
 	cacheMulti?.set?.(
-		`twyr!entity!value!aggregate!user!${userId}!basics`,
+		`twyr!entity!value!aggregate!${userRole}!${userId}!basics`,
 		JSON?.stringify?.(cachedUser)
 	);
 
 	cacheMulti?.expire?.(
-		`twyr!entity!value!aggregate!user!${userId}!basics`,
+		`twyr!entity!value!aggregate!${userRole}!${userId}!basics`,
 		global.serverEnvironment === 'development'
 			? SESSION_CACHE_TIMEOUT_DEVELOPMENT
 			: SESSION_CACHE_TIMEOUT_PRODUCTION

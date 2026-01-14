@@ -185,7 +185,7 @@ export class Session extends ServerUserBaseMiddleware {
 			}
 		);
 
-		const responseMessage = await i18nRepository?.interface?.translate(
+		const responseMessage = await i18nRepository?.translate(
 			'SERVER_USERS::SESSION_MANAGER::OTP_MESSAGE_RESPONSE',
 			userLocale
 		);

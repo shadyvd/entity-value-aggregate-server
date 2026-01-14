@@ -116,10 +116,10 @@ export class BaseSurface extends EVASBaseSurface {
 		// Finally, add this router to the RESTApi Repository...
 		const restApiInstance =
 			await this?.domainInterface?.iocContainer?.resolve?.('RestApi');
-		const mainRouter = restApiInstance?.router;
+		const mainRouters = restApiInstance?.routers;
 
 		this.#routers?.forEach((router, key) => {
-			mainRouter?.get?.(key)?.use?.(router?.routes?.());
+			mainRouters?.get?.(key)?.use?.(router?.routes?.());
 		});
 	}
 

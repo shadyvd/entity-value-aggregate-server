@@ -412,7 +412,7 @@ class RestApi extends EVASBaseIngressSurface {
 	// #region Getters / Setters
 	get interface() {
 		return {
-			router: this.#routers,
+			routers: this.#routers,
 
 			start: this?.start?.bind?.(this),
 			stop: this?.stop?.bind?.(this)

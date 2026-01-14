@@ -63,12 +63,14 @@ export class Main extends BaseSurface {
 		const baseRoutes = await super._registerSurface?.();
 
 		baseRoutes?.push?.({
+			version: 1,
 			httpMethod: 'GET',
 			path: '/contact-types',
 			middlewares: [await this?._rbac?.('registered')],
 			handler: this.#getContactTypes?.bind?.(this)
 		});
 		baseRoutes?.push?.({
+			version: 1,
 			httpMethod: 'GET',
 			path: '/contact-types/:id',
 			middlewares: [await this?._rbac?.('registered')],
@@ -76,12 +78,14 @@ export class Main extends BaseSurface {
 		});
 
 		baseRoutes?.push?.({
+			version: 1,
 			httpMethod: 'GET',
 			path: '/connection-statuses',
 			middlewares: [await this?._rbac?.('registered')],
 			handler: this.#getConnectionStatuses?.bind?.(this)
 		});
 		baseRoutes?.push?.({
+			version: 1,
 			httpMethod: 'GET',
 			path: '/connection-statuses/:id',
 			middlewares: [await this?._rbac?.('registered')],
@@ -89,12 +93,14 @@ export class Main extends BaseSurface {
 		});
 
 		baseRoutes?.push?.({
+			version: 1,
 			httpMethod: 'GET',
 			path: '/genders',
 			middlewares: [await this?._rbac?.('registered')],
 			handler: this.#getGenders?.bind?.(this)
 		});
 		baseRoutes?.push?.({
+			version: 1,
 			httpMethod: 'GET',
 			path: '/genders/:id',
 			middlewares: [await this?._rbac?.('registered')],
@@ -102,12 +108,14 @@ export class Main extends BaseSurface {
 		});
 
 		baseRoutes?.push?.({
+			version: 1,
 			httpMethod: 'GET',
 			path: '/locales',
 			middlewares: [await this?._rbac?.('registered')],
 			handler: this.#getLocales?.bind?.(this)
 		});
 		baseRoutes?.push?.({
+			version: 1,
 			httpMethod: 'GET',
 			path: '/locales/:id',
 			middlewares: [await this?._rbac?.('registered')],
