@@ -30,17 +30,24 @@ const getUserDetails = async function getUserDetails(
 
 	// Step 3: Get the contact details
 	const contactDetails = await databaseRepository?.raw?.(
-		`SELECT B.name as type, A.contact AS contact, A.verified AS verified FROM ${userRole}_contacts A INNER JOIN contact_type_master B ON (A.contact_type_id = B.id)  WHERE A.${userRole}_id = ?`,
+		`SELECT B.name as type, A.contact AS contact, A.verified AS verified, A.is_primary AS primary FROM ${userRole}_contacts A INNER JOIN contact_type_master B ON (A.contact_type_id = B.id)  WHERE A.${userRole}_id = ?`,
 		[userId]
 	);
 	cachedUser['contacts'] = contactDetails?.rows;
+	cachedUser['primary_contact'] = contactDetails?.rows?.filter(
+		(row) => row?.primary
+	)?.[0];
 
 	// Step 4: Get the language preferences
 	const localeDetails = await databaseRepository?.raw?.(
 		`SELECT A.locale_code AS locale, A.is_primary AS primary, B.language_name AS language, B.is_rtl AS rtl FROM ${userRole}_locales A INNER JOIN locale_master B ON (A.locale_code = B.code)  WHERE A.${userRole}_id = ?`,
 		[userId]
 	);
+
 	cachedUser['locales'] = localeDetails?.rows;
+	cachedUser['primary_locale'] = localeDetails?.rows?.filter(
+		(row) => row?.primary
+	)?.[0]?.locale;
 
 	// Finally, Set the details in the cache for the future...
 	const cacheMulti = await cacheRepository?.multi?.();
