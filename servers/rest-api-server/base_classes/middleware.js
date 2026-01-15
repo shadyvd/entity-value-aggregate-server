@@ -136,6 +136,7 @@ export class BaseMiddleware extends EVASBaseMiddleware {
 			numOfAttempts: MAX_RETRY_COUNT,
 			retry: (error) => {
 				logger?.error?.(error?.message);
+				return true;
 			}
 		});
 
