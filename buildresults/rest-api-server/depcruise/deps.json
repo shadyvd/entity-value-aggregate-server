@@ -1536,23 +1536,6 @@
           "valid": true
         },
         {
-          "module": "boolean-parser",
-          "moduleSystem": "es6",
-          "dynamic": true,
-          "exoticallyRequired": false,
-          "dependencyTypes": [
-            "npm",
-            "dynamic-import"
-          ],
-          "resolved": "../../node_modules/boolean-parser/index.js",
-          "coreModule": false,
-          "followable": false,
-          "couldNotResolve": false,
-          "matchesDoNotFollow": true,
-          "circular": false,
-          "valid": true
-        },
-        {
           "module": "inflection",
           "moduleSystem": "es6",
           "dynamic": true,
@@ -1606,23 +1589,6 @@
       "dependents": [
         "base_classes/surface.js",
         "source/ingress_surfaces/rest_api/index.js"
-      ],
-      "orphan": false,
-      "valid": true
-    },
-    {
-      "source": "../../node_modules/boolean-parser/index.js",
-      "followable": false,
-      "coreModule": false,
-      "couldNotResolve": false,
-      "matchesDoNotFollow": true,
-      "dependencyTypes": [
-        "npm",
-        "dynamic-import"
-      ],
-      "dependencies": [],
-      "dependents": [
-        "base_classes/surface.js"
       ],
       "orphan": false,
       "valid": true
@@ -1866,7 +1832,7 @@
             "npm-dev",
             "require"
           ],
-          "resolved": "../../node_modules/cldr-core/supplemental/likelySubtags.json",
+          "resolved": "node_modules/cldr-core/supplemental/likelySubtags.json",
           "coreModule": false,
           "followable": false,
           "couldNotResolve": false,
@@ -1889,7 +1855,7 @@
             "npm-dev",
             "require"
           ],
-          "resolved": "../../node_modules/cldr-localenames-full/main/en/languages.json",
+          "resolved": "node_modules/cldr-localenames-full/main/en/languages.json",
           "coreModule": false,
           "followable": false,
           "couldNotResolve": false,
@@ -1912,7 +1878,7 @@
             "npm-dev",
             "require"
           ],
-          "resolved": "../../node_modules/cldr-localenames-full/main/en/territories.json",
+          "resolved": "node_modules/cldr-localenames-full/main/en/territories.json",
           "coreModule": false,
           "followable": false,
           "couldNotResolve": false,
@@ -1932,7 +1898,7 @@
       "valid": true
     },
     {
-      "source": "../../node_modules/cldr-core/supplemental/likelySubtags.json",
+      "source": "node_modules/cldr-core/supplemental/likelySubtags.json",
       "followable": false,
       "coreModule": false,
       "couldNotResolve": false,
@@ -1949,7 +1915,7 @@
       "valid": true
     },
     {
-      "source": "../../node_modules/cldr-localenames-full/main/en/languages.json",
+      "source": "node_modules/cldr-localenames-full/main/en/languages.json",
       "followable": false,
       "coreModule": false,
       "couldNotResolve": false,
@@ -1966,7 +1932,7 @@
       "valid": true
     },
     {
-      "source": "../../node_modules/cldr-localenames-full/main/en/territories.json",
+      "source": "node_modules/cldr-localenames-full/main/en/territories.json",
       "followable": false,
       "coreModule": false,
       "couldNotResolve": false,
@@ -5117,7 +5083,7 @@
             "npm",
             "dynamic-import"
           ],
-          "resolved": "../../node_modules/ejs/lib/ejs.js",
+          "resolved": "../../node_modules/ejs/lib/cjs/ejs.js",
           "coreModule": false,
           "followable": false,
           "couldNotResolve": false,
@@ -5131,7 +5097,7 @@
       "valid": true
     },
     {
-      "source": "../../node_modules/ejs/lib/ejs.js",
+      "source": "../../node_modules/ejs/lib/cjs/ejs.js",
       "followable": false,
       "coreModule": false,
       "couldNotResolve": false,
@@ -5202,6 +5168,23 @@
           "valid": true
         },
         {
+          "module": "pg-error",
+          "moduleSystem": "es6",
+          "dynamic": true,
+          "exoticallyRequired": false,
+          "dependencyTypes": [
+            "npm",
+            "dynamic-import"
+          ],
+          "resolved": "../../node_modules/pg-error/index.js",
+          "coreModule": false,
+          "followable": false,
+          "couldNotResolve": false,
+          "matchesDoNotFollow": true,
+          "circular": false,
+          "valid": true
+        },
+        {
           "module": "safe-json-stringify",
           "moduleSystem": "es6",
           "dynamic": true,
@@ -5241,6 +5224,23 @@
       "valid": true
     },
     {
+      "source": "../../node_modules/pg-error/index.js",
+      "followable": false,
+      "coreModule": false,
+      "couldNotResolve": false,
+      "matchesDoNotFollow": true,
+      "dependencyTypes": [
+        "npm",
+        "dynamic-import"
+      ],
+      "dependencies": [],
+      "dependents": [
+        "source/repositories/runtime/sql_database/index.js"
+      ],
+      "orphan": false,
+      "valid": true
+    },
+    {
       "source": "tests/setup-mocks.cjs",
       "dependencies": [],
       "dependents": [],
@@ -5259,7 +5259,7 @@
       {
         "type": "dependency",
         "from": "knex_migrations/seeds/002-locales-seed.cjs",
-        "to": "../../node_modules/cldr-core/supplemental/likelySubtags.json",
+        "to": "node_modules/cldr-core/supplemental/likelySubtags.json",
         "rule": {
           "severity": "error",
           "name": "not-to-dev-dep"
@@ -5268,7 +5268,7 @@
       {
         "type": "dependency",
         "from": "knex_migrations/seeds/002-locales-seed.cjs",
-        "to": "../../node_modules/cldr-localenames-full/main/en/languages.json",
+        "to": "node_modules/cldr-localenames-full/main/en/languages.json",
         "rule": {
           "severity": "error",
           "name": "not-to-dev-dep"
@@ -5277,7 +5277,7 @@
       {
         "type": "dependency",
         "from": "knex_migrations/seeds/002-locales-seed.cjs",
-        "to": "../../node_modules/cldr-localenames-full/main/en/territories.json",
+        "to": "node_modules/cldr-localenames-full/main/en/territories.json",
         "rule": {
           "severity": "error",
           "name": "not-to-dev-dep"
