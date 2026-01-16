@@ -86,6 +86,7 @@
 		"passport": "0.7.0",
 		"passport-local": "1.0.0",
 		"pg": "8.17.1",
+		"pg-error": "1.1.0",
 		"please-upgrade-node": "3.2.0",
 		"redis": "5.10.0",
 		"redis-om": "0.4.7",
