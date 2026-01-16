@@ -175,9 +175,6 @@ export class Basics extends ServerUserBaseMiddleware {
 			}
 		]);
 
-		const i18nRepository =
-			await this?.domainInterface?.iocContainer?.resolve?.('MessageI18N');
-
 		// Step 1: De-serialize from JSON API Format
 		const serverUser =
 			await this?.domainInterface?.serializer?.deserializeAsync?.(
