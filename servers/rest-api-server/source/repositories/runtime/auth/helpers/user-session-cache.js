@@ -23,7 +23,14 @@ const getUserDetails = async function getUserDetails(
 		[userId]
 	);
 
-	if (!cachedUser) return null;
+	if (!cachedUser?.rows?.length) {
+		const userError = new Error(
+			`EVASERVER::AUTH_REPOSITORY::USER_NOT_FOUND_IN_DB`
+		);
+		userError.code = 'EVASERVER::AUTH_REPOSITORY::USER_NOT_FOUND_IN_DB';
+
+		throw userError;
+	}
 
 	cachedUser = cachedUser?.rows?.[0];
 	cachedUser['role'] = userRole;
@@ -91,15 +98,26 @@ export default async function userSessionCache(
 	cacheRepository,
 	databaseRepository
 ) {
-	const userDetails = await getUserDetails(
-		userRole,
-		userId,
-		cacheRepository,
-		databaseRepository
-	);
+	let userDetails = undefined;
 
-	if (!userDetails) {
-		throw new Error(`User not found`);
+	try {
+		userDetails = await getUserDetails?.(
+			userRole,
+			userId,
+			cacheRepository,
+			databaseRepository
+		);
+	} catch (error) {
+		if (error?.code?.startsWith?.('EVASERVER')) {
+			throw error;
+		}
+
+		const userError = new Error(`EVASERVER::UNKNOWN_ERROR`);
+
+		userError.code = 'EVASERVER::UNKNOWN_ERROR';
+		userError.cause = error;
+
+		throw userError;
 	}
 
 	return userDetails;

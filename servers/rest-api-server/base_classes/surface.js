@@ -208,32 +208,30 @@ export class BaseSurface extends EVASBaseSurface {
 	 *
 	 */
 	async _rbac(permission) {
-		let permissionParser = await import('boolean-parser');
-		permissionParser = permissionParser?.['default'];
-
-		// Step 1: Parse the permissions...
-		let parsedPermissions =
-			permissionParser?.parseBooleanQuery?.(permission);
-
-		if (
-			parsedPermissions?.length === 1 &&
-			parsedPermissions?.[0]?.length === 1
-		)
-			parsedPermissions = parsedPermissions?.[0]?.[0];
-
-		// Step 2: Create the Koa middleware...
 		const permissionCheckerMiddleware =
 			async function permissionCheckerMiddleware(ctxt, next) {
 				if (!ctxt.state.user) {
-					throw new Error(`No active session`);
+					const userError = new Error(
+						`EVASERVER::SERVER_USERS::SESSION_MANAGER::NO_ACTIVE_SESSION`
+					);
+					userError.code =
+						'EVASERVER::SERVER_USERS::SESSION_MANAGER::NO_ACTIVE_SESSION';
+
+					throw userError;
 				}
 
-				if (parsedPermissions === 'registered') {
+				if (permission === 'registered') {
 					await next?.();
 					return;
 				}
 
-				await next?.();
+				const permissionError = new Error(
+					`EVASERVER::SERVER_USERS::SESSION_MANAGER::AUTHORIZATION_FAILURE`
+				);
+				permissionError.code =
+					'EVASERVER::SERVER_USERS::SESSION_MANAGER::AUTHORIZATION_FAILURE';
+
+				throw permissionError;
 			};
 
 		// Finally, return the middleware...

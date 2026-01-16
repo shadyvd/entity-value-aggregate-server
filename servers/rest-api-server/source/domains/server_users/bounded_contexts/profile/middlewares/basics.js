@@ -197,16 +197,12 @@ export class Basics extends ServerUserBaseMiddleware {
 		);
 
 		if (serverUser?.otp !== otpNumber) {
-			const errorMessage = await i18nRepository?.translate(
-				'SERVER_USERS::PROFILE::OTP_MISSING',
-				serverUser?.locale,
-				{
-					firstName: serverUser.first_name,
-					lastName: serverUser.last_name
-				}
+			const userError = new Error(
+				'EVASERVER::SERVER_USERS::PROFILE::INVALID_OTP'
 			);
+			userError.code = 'EVASERVER::SERVER_USERS::PROFILE::INVALID_OTP';
 
-			throw new Error(errorMessage);
+			throw userError;
 		}
 
 		let existingServerUser = await this?._executeWithBackOff?.(async () => {
@@ -216,16 +212,12 @@ export class Basics extends ServerUserBaseMiddleware {
 		});
 
 		if (existingServerUser) {
-			const errorMessage = await i18nRepository?.translate(
-				'SERVER_USERS::PROFILE::DUPLICATE_USER',
-				serverUser?.locale,
-				{
-					firstName: serverUser.first_name,
-					lastName: serverUser.last_name
-				}
+			const userError = new Error(
+				'EVASERVER::SERVER_USERS::PROFILE::DUPLICATE_USER'
 			);
+			userError.code = 'EVASERVER::SERVER_USERS::PROFILE::DUPLICATE_USER';
 
-			throw new Error(errorMessage);
+			throw userError;
 		}
 
 		const currentTime = DateTime?.local?.();
@@ -233,16 +225,12 @@ export class Basics extends ServerUserBaseMiddleware {
 
 		const serverUserAge = currentTime?.diff?.(serverUserDob)?.as?.('years');
 		if (serverUserAge < 18) {
-			const errorMessage = await i18nRepository?.translate(
-				'SERVER_USERS::PROFILE::MINOR_USER',
-				serverUser?.locale,
-				{
-					firstName: serverUser.first_name,
-					lastName: serverUser.last_name
-				}
+			const userError = new Error(
+				'EVASERVER::SERVER_USERS::PROFILE::MINOR_USER'
 			);
+			userError.code = 'EVASERVER::SERVER_USERS::PROFILE::MINOR_USER';
 
-			throw new Error(errorMessage);
+			throw userError;
 		}
 
 		// Step 3: Create the server-user profile basics / contact

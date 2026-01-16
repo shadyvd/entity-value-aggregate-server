@@ -176,7 +176,7 @@ export class Session extends ServerUserBaseMiddleware {
 		const i18nRepository =
 			await this?.domainInterface?.iocContainer?.resolve?.('MessageI18N');
 
-		const otpMessage = await i18nRepository?.translate(
+		const otpMessage = await i18nRepository?.translate?.(
 			'SERVER_USERS::SESSION_MANAGER::OTP_MESSAGE_SMS',
 			userLocale,
 			{
@@ -185,7 +185,7 @@ export class Session extends ServerUserBaseMiddleware {
 			}
 		);
 
-		const responseMessage = await i18nRepository?.translate(
+		const responseMessage = await i18nRepository?.translate?.(
 			'SERVER_USERS::SESSION_MANAGER::OTP_MESSAGE_RESPONSE',
 			userLocale
 		);
@@ -251,14 +251,23 @@ export class Session extends ServerUserBaseMiddleware {
 		};
 	}
 
-	async #logout({ userId, userRole, userName }) {
+	async #logout({ userId, userName, userLocale }) {
 		this?.domainInterface?.eventEmitter?.emit?.('SERVER_USER::LOGOUT', {
 			userId: userId
 		});
 
+		const i18nRepository =
+			await this?.domainInterface?.iocContainer?.resolve?.('MessageI18N');
+
+		const responseMessage = await i18nRepository?.translate?.(
+			'SERVER_USERS::SESSION_MANAGER::LOGOUT_MESSAGE',
+			userLocale,
+			{ userName: userName }
+		);
+
 		return {
 			status: 200,
-			body: `Logged out ${userRole}: ${userName}`
+			body: responseMessage
 		};
 	}
 	// #endregion

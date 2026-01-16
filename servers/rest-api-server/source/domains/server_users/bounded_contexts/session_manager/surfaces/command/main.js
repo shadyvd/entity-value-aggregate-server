@@ -168,21 +168,15 @@ export class Main extends BaseSurface {
 	 *
 	 */
 	async #login(ctxt) {
-		const i18nRepository =
-			await this?.domainInterface?.iocContainer?.resolve?.('MessageI18N');
-
-		const userLocale = ctxt?.state?.user?.locales?.filter?.(
-			(locale) => !!locale?.primary
-		)?.[0]?.locale;
-
 		// Sanity check...
 		if (ctxt?.isAuthenticated?.()) {
-			const errorMessage = await i18nRepository?.translate(
-				'SERVER_USERS::SESSION_MANAGER::EXISTING_ACTIVE_SESSION',
-				userLocale
+			const userError = new Error(
+				`EVASERVER::SERVER_USERS::SESSION_MANAGER::EXISTING_ACTIVE_SESSION`
 			);
+			userError.code =
+				'EVASERVER::SERVER_USERS::SESSION_MANAGER::EXISTING_ACTIVE_SESSION';
 
-			throw new Error(errorMessage);
+			throw userError;
 		}
 
 		// Step 1: Login...
@@ -228,17 +222,29 @@ export class Main extends BaseSurface {
 	 */
 	async #logout(ctxt) {
 		const userId = ctxt?.state?.user?.id;
+		const userLocale = ctxt?.state?.user?.['primary_locale'] ?? 'en-IN';
 		const userRole = ctxt?.session?.passport?.user?.['role'];
-		const userName = `${ctxt?.state?.user?.['first_name']} ${ctxt?.state?.user?.['last_name']}`;
+
+		const firstName = ctxt?.state?.user?.['first_name'];
+		const lastName = ctxt?.state?.user?.['last_name'];
+		const userName = `${firstName} ${lastName}`;
 
 		await ctxt?.logout?.();
 
 		const apiRegistry = this?.domainInterface?.apiRegistry;
 		const logoutStatus = await apiRegistry?.execute?.('LOGOUT', {
 			userId: userId,
-			userRole: userRole,
-			userName: userName
+			userName: userName,
+			userLocale: userLocale
 		});
+
+		// Reset this for audit log purposes
+		ctxt.state.user = {
+			id: userId,
+			role: userRole,
+			first_name: firstName,
+			last_name: lastName
+		};
 
 		ctxt.status = logoutStatus?.status;
 		ctxt.body = logoutStatus?.body;
