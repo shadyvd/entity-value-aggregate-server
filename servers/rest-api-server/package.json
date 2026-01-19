@@ -107,7 +107,7 @@
 		"eslint-config-prettier": "10.1.8",
 		"eslint-formatter-junit": "9.0.1",
 		"eslint-plugin-editorconfig": "4.0.3",
-		"eslint-plugin-jsdoc": "62.0.0",
+		"eslint-plugin-jsdoc": "62.1.0",
 		"eslint-plugin-json": "4.0.1",
 		"eslint-plugin-jsonc": "2.21.0",
 		"eslint-plugin-mocha": "11.2.0",
