@@ -85,7 +85,7 @@
 		"overload-protection": "1.2.3",
 		"passport": "0.7.0",
 		"passport-local": "1.0.0",
-		"pg": "8.17.2",
+		"pg": "8.18.0",
 		"pg-error": "1.1.0",
 		"please-upgrade-node": "3.2.0",
 		"redis": "5.10.0",
